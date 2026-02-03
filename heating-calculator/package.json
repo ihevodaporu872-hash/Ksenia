@@ -1,0 +1,15 @@
+{
+  "name": "ventilation-calculator",
+  "version": "1.0.0",
+  "description": "Калькулятор расчета системы вентиляции",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["ventilation", "calculator"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

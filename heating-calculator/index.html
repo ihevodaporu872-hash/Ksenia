@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор системы вентиляции</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .main-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 25px;
+        }
+
+        .nav-tabs .nav-link {
+            color: #666;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 12px 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: #667eea;
+            border-color: transparent;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #667eea;
+            background: none;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .nav-tabs .nav-link i {
+            margin-right: 6px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border-radius: 15px;
+            color: white;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result-card h5 {
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 1.1em;
+            padding-top: 12px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .fitting-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .fitting-item .form-control {
+            max-width: 80px;
+        }
+
+        .total-row {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .info-badge {
+            background: #e7f1ff;
+            color: #667eea;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs .nav-link {
+                padding: 10px 8px;
+                font-size: 0.85rem;
+            }
+            .nav-tabs .nav-link i {
+                display: block;
+                margin: 0 0 3px 0;
+            }
+        }
+
+        /* Стили для аккордеона */
+        .accordion-button {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            color: #667eea;
+        }
+
+        .accordion-button:focus {
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        }
+
+        .accordion-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px !important;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .accordion-body {
+            background: #fafafa;
+        }
+
+        .section-total {
+            font-size: 0.85rem;
+        }
+
+        .section-result {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+        }
+
+        /* Стили для CSV таблиц */
+        .csv-upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background: #f8f9ff;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .csv-upload-area:hover {
+            background: #eef1ff;
+            border-color: #764ba2;
+        }
+
+        .csv-upload-area i {
+            font-size: 2rem;
+            color: #667eea;
+        }
+
+        .systems-table {
+            font-size: 0.9rem;
+        }
+
+        .systems-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .systems-table .flow-input {
+            width: 90px;
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: right;
+        }
+
+        .systems-table .flow-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .accordion-header-stats {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .header-stat {
+            font-size: 0.8rem;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .velocity-control {
+            background: #fff3cd;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+        }
+
+        .velocity-control input {
+            width: 80px;
+            display: inline-block;
+        }
+
+        .empty-section {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+        }
+
+        .main-container {
+            max-width: 1000px;
+        }
+
+        /* Скорость в аккордеоне */
+        .velocity-inline {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 15px;
+            background: #fff3cd;
+            border-radius: 8px;
+            margin-right: 10px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .velocity-inline label {
+            font-weight: 600;
+            color: #856404;
+            margin: 0;
+        }
+
+        .velocity-inline span {
+            color: #856404;
+        }
+
+        .section-velocity {
+            width: 60px;
+            padding: 3px 6px;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .section-velocity:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        .accordion-header {
+            position: relative;
+        }
+
+        .accordion-button {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <h1><i class="bi bi-wind"></i> Калькулятор вентиляции</h1>
+            <p class="subtitle">Комплексный расчет системы вентиляции</p>
+
+            <!-- Навигация по вкладкам -->
+            <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="power-tab" data-bs-toggle="tab" data-bs-target="#power" type="button" role="tab">
+                        <i class="bi bi-lightning-charge"></i>Мощность
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="ducts-tab" data-bs-toggle="tab" data-bs-target="#ducts" type="button" role="tab">
+                        <i class="bi bi-box"></i>Воздуховоды
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="fittings-tab" data-bs-toggle="tab" data-bs-target="#fittings" type="button" role="tab">
+                        <i class="bi bi-gear"></i>Арматура
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="insulation-tab" data-bs-toggle="tab" data-bs-target="#insulation" type="button" role="tab">
+                        <i class="bi bi-layers"></i>Изоляция
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="grilles-tab" data-bs-toggle="tab" data-bs-target="#grilles" type="button" role="tab">
+                        <i class="bi bi-grid-3x3"></i>Решетки
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Содержимое вкладок -->
+            <div class="tab-content" id="mainTabsContent">
+
+                <!-- Вкладка: Мощность -->
+                <div class="tab-pane fade show active" id="power" role="tabpanel">
+                    <form id="powerForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="bi bi-aspect-ratio"></i> Площадь помещения (м²)</label>
+                                <input type="number" class="form-control" id="area" min="1" step="0.1" required placeholder="25">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="bi bi-arrows-vertical"></i> Высота потолков (м)</label>
+                                <input type="number" class="form-control" id="height" min="1" step="0.1" required placeholder="2.7">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><i class="bi bi-bricks"></i> Количество внешних стен</label>
+                                <select class="form-select" id="externalWalls" required>
+                                    <option value="0">0 стен</option>
+                                    <option value="1" selected>1 стена</option>
+                                    <option value="2">2 стены</option>
+                                    <option value="3">3 стены</option>
+                                    <option value="4">4 стены</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3 d-flex align-items-end">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="energyEfficient">
+                                    <label class="form-check-label" for="energyEfficient">
+                                        <i class="bi bi-window"></i> Энергосберегающие окна
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-calculator"></i> Рассчитать мощность
+                        </button>
+                    </form>
+                    <div id="powerResult" class="result-card" style="display: none;">
+                        <h5><i class="bi bi-clipboard-data"></i> Результаты расчета</h5>
+                        <div class="result-item">
+                            <span>Объем помещения:</span>
+                            <span id="resultVolume">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Площадь:</span>
+                            <span id="resultArea">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Требуемая мощность:</span>
+                            <span id="resultPower">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Вкладка: Воздуховоды -->
+                <div class="tab-pane fade" id="ducts" role="tabpanel">
+                    <div class="info-badge">
+                        <i class="bi bi-info-circle"></i> Формула: S = L / (3600 × v), где L — расход воздуха (м³/ч), v — скорость (м/с)
+                    </div>
+
+                    <!-- Загрузка Excel -->
+                    <div class="csv-upload-area" id="csvUploadArea">
+                        <i class="bi bi-file-earmark-excel"></i>
+                        <p class="mb-1 mt-2"><strong>Загрузить Excel файл</strong></p>
+                        <small class="text-muted">Столбцы: A - Система, B - Назначение, C - Расход L (м³/ч)</small>
+                        <input type="file" id="csvFileInput" accept=".xlsx,.xls" style="display: none;">
+                    </div>
+
+                    <!-- Информация о стандартных диаметрах -->
+                    <div class="velocity-control">
+                        <i class="bi bi-info-circle"></i>
+                        <small class="text-muted">Стандартные диаметры: 100, 125, 160, 200, 250, 315, 355, 400, 450, 500 мм</small>
+                    </div>
+
+                    <!-- Аккордеон секций -->
+                    <div class="accordion" id="ductsAccordion">
+
+                        <!-- Секция 1: Транзиты (Аренда) -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header d-flex align-items-center">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#rentTransit">
+                                    <i class="bi bi-building me-2"></i>
+                                    <span class="accordion-header-stats">
+                                        <span>Транзиты (Аренда)</span>
+                                        <span class="header-stat" id="rentStats">Систем: 0 | Расход: 0 м³/ч</span>
+                                    </span>
+                                </button>
+                                <div class="velocity-inline" onclick="event.stopPropagation()">
+                                    <label>v:</label>
+                                    <input type="number" class="section-velocity" id="velocityRent" value="6" min="1" max="15" step="0.5" data-section="rent">
+                                    <span>м/с</span>
+                                </div>
+                            </h2>
+                            <div id="rentTransit" class="accordion-collapse collapse show" data-bs-parent="#ductsAccordion">
+                                <div class="accordion-body p-2">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover systems-table mb-0" id="rentTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Система</th>
+                                                    <th>Назначение</th>
+                                                    <th>Расход, м³/ч</th>
+                                                    <th>Сечение (Размер/Ø)</th>
+                                                    <th>Периметр, м</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="rentTableBody">
+                                                <tr><td colspan="5" class="empty-section">Нет данных. Загрузите Excel файл.</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Секция 2: Жилая часть -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header d-flex align-items-center">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#residential">
+                                    <i class="bi bi-house me-2"></i>
+                                    <span class="accordion-header-stats">
+                                        <span>Жилая часть</span>
+                                        <span class="header-stat" id="residentialStats">Систем: 0 | Расход: 0 м³/ч</span>
+                                    </span>
+                                </button>
+                                <div class="velocity-inline" onclick="event.stopPropagation()">
+                                    <label>v:</label>
+                                    <input type="number" class="section-velocity" id="velocityResidential" value="6" min="1" max="15" step="0.5" data-section="residential">
+                                    <span>м/с</span>
+                                </div>
+                            </h2>
+                            <div id="residential" class="accordion-collapse collapse" data-bs-parent="#ductsAccordion">
+                                <div class="accordion-body p-2">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover systems-table mb-0" id="residentialTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Система</th>
+                                                    <th>Назначение</th>
+                                                    <th>Расход, м³/ч</th>
+                                                    <th>Сечение (Размер/Ø)</th>
+                                                    <th>Периметр, м</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="residentialTableBody">
+                                                <tr><td colspan="5" class="empty-section">Нет данных. Загрузите Excel файл.</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Секция 3: Автостоянка -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header d-flex align-items-center">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#parkingTransit">
+                                    <i class="bi bi-car-front me-2"></i>
+                                    <span class="accordion-header-stats">
+                                        <span>Автостоянка</span>
+                                        <span class="header-stat" id="parkingStats">Систем: 0 | Расход: 0 м³/ч</span>
+                                    </span>
+                                </button>
+                                <div class="velocity-inline" onclick="event.stopPropagation()">
+                                    <label>v:</label>
+                                    <input type="number" class="section-velocity" id="velocityParking" value="6" min="1" max="15" step="0.5" data-section="parking">
+                                    <span>м/с</span>
+                                </div>
+                            </h2>
+                            <div id="parkingTransit" class="accordion-collapse collapse" data-bs-parent="#ductsAccordion">
+                                <div class="accordion-body p-2">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover systems-table mb-0" id="parkingTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Система</th>
+                                                    <th>Назначение</th>
+                                                    <th>Расход, м³/ч</th>
+                                                    <th>Сечение (Размер/Ø)</th>
+                                                    <th>Периметр, м</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="parkingTableBody">
+                                                <tr><td colspan="5" class="empty-section">Нет данных. Загрузите Excel файл.</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Секция 4: Прочие системы -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header d-flex align-items-center">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#otherSystems">
+                                    <i class="bi bi-three-dots me-2"></i>
+                                    <span class="accordion-header-stats">
+                                        <span>Прочие системы</span>
+                                        <span class="header-stat" id="otherStats">Систем: 0 | Расход: 0 м³/ч</span>
+                                    </span>
+                                </button>
+                                <div class="velocity-inline" onclick="event.stopPropagation()">
+                                    <label>v:</label>
+                                    <input type="number" class="section-velocity" id="velocityOther" value="6" min="1" max="15" step="0.5" data-section="other">
+                                    <span>м/с</span>
+                                </div>
+                            </h2>
+                            <div id="otherSystems" class="accordion-collapse collapse" data-bs-parent="#ductsAccordion">
+                                <div class="accordion-body p-2">
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover systems-table mb-0" id="otherTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Система</th>
+                                                    <th>Назначение</th>
+                                                    <th>Расход, м³/ч</th>
+                                                    <th>Сечение (Размер/Ø)</th>
+                                                    <th>Периметр, м</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="otherTableBody">
+                                                <tr><td colspan="5" class="empty-section">Нет данных. Загрузите Excel файл.</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Общий итог -->
+                    <div class="total-row mt-3">
+                        <div class="row">
+                            <div class="col-4 text-center">
+                                <small>Всего систем</small>
+                                <div class="fs-5" id="totalSystems">0</div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Общий расход</small>
+                                <div class="fs-5" id="totalFlow">0 м³/ч</div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <small>Общий периметр</small>
+                                <div class="fs-5" id="totalSection">0 м</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Вкладка: Арматура -->
+                <div class="tab-pane fade" id="fittings" role="tabpanel">
+                    <div class="info-badge">
+                        <i class="bi bi-info-circle"></i> Укажите количество фасонных изделий для расчета общей площади
+                    </div>
+
+                    <div class="section-title">Базовые размеры воздуховода</div>
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Ширина A (мм)</label>
+                            <input type="number" class="form-control" id="fittingWidth" value="200" min="1">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Высота B (мм)</label>
+                            <input type="number" class="form-control" id="fittingHeight" value="100" min="1">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Толщина (мм)</label>
+                            <select class="form-select" id="fittingSteelThickness">
+                                <option value="0.5">0.5</option>
+                                <option value="0.7" selected>0.7</option>
+                                <option value="0.9">0.9</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Фасонные изделия</div>
+
+                    <div class="fitting-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <strong><i class="bi bi-arrow-return-right"></i> Отвод 90°</strong>
+                                <small class="text-muted d-block">Коэффициент: 1.5</small>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" class="form-control fitting-qty" id="elbow90" value="0" min="0" data-coef="1.5">
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <span class="fitting-area" data-for="elbow90">0 м²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fitting-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <strong><i class="bi bi-arrow-up-right"></i> Отвод 45°</strong>
+                                <small class="text-muted d-block">Коэффициент: 1.2</small>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" class="form-control fitting-qty" id="elbow45" value="0" min="0" data-coef="1.2">
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <span class="fitting-area" data-for="elbow45">0 м²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fitting-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <strong><i class="bi bi-arrows-expand"></i> Переход</strong>
+                                <small class="text-muted d-block">Коэффициент: 1.3</small>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" class="form-control fitting-qty" id="reducer" value="0" min="0" data-coef="1.3">
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <span class="fitting-area" data-for="reducer">0 м²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fitting-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <strong><i class="bi bi-signpost-split"></i> Тройник</strong>
+                                <small class="text-muted d-block">Коэффициент: 2.0</small>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" class="form-control fitting-qty" id="tee" value="0" min="0" data-coef="2.0">
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <span class="fitting-area" data-for="tee">0 м²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fitting-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <strong><i class="bi bi-x-lg"></i> Крестовина</strong>
+                                <small class="text-muted d-block">Коэффициент: 2.5</small>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" class="form-control fitting-qty" id="cross" value="0" min="0" data-coef="2.5">
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <span class="fitting-area" data-for="cross">0 м²</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="total-row">
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Общая площадь арматуры:</strong>
+                            </div>
+                            <div class="col-6 text-end">
+                                <strong id="totalFittingsArea">0 м²</strong>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <strong>Общий вес:</strong>
+                            </div>
+                            <div class="col-6 text-end">
+                                <strong id="totalFittingsWeight">0 кг</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Вкладка: Изоляция -->
+                <div class="tab-pane fade" id="insulation" role="tabpanel">
+                    <div class="info-badge">
+                        <i class="bi bi-info-circle"></i> Расчет на основе площади воздуховодов с учетом коэффициента нахлеста
+                    </div>
+
+                    <form id="insulationForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Площадь воздуховодов (м²)</label>
+                                <input type="number" class="form-control" id="insulationDuctArea" min="0" step="0.1" placeholder="0">
+                                <small class="text-muted">Или возьмите из вкладки "Воздуховоды"</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Площадь арматуры (м²)</label>
+                                <input type="number" class="form-control" id="insulationFittingsArea" min="0" step="0.1" placeholder="0">
+                                <small class="text-muted">Или возьмите из вкладки "Арматура"</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Толщина изоляции (мм)</label>
+                                <select class="form-select" id="insulationThickness">
+                                    <option value="25">25 мм</option>
+                                    <option value="30">30 мм</option>
+                                    <option value="40">40 мм</option>
+                                    <option value="50" selected>50 мм</option>
+                                    <option value="80">80 мм</option>
+                                    <option value="100">100 мм</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Коэффициент нахлеста</label>
+                                <input type="number" class="form-control" id="overlapCoef" value="1.1" min="1" max="2" step="0.05">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Тип утеплителя</label>
+                            <select class="form-select" id="insulationType">
+                                <option value="25" selected>Минеральная вата (25 кг/м³)</option>
+                                <option value="40">Минеральная вата (40 кг/м³)</option>
+                                <option value="35">Вспененный каучук (35 кг/м³)</option>
+                                <option value="30">Вспененный полиэтилен (30 кг/м³)</option>
+                            </select>
+                        </div>
+
+                        <button type="button" class="btn btn-outline-primary mb-3" id="syncFromDucts">
+                            <i class="bi bi-arrow-down-circle"></i> Загрузить данные из других вкладок
+                        </button>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-calculator"></i> Рассчитать изоляцию
+                        </button>
+                    </form>
+
+                    <div id="insulationResult" class="result-card" style="display: none;">
+                        <h5><i class="bi bi-clipboard-data"></i> Результаты расчета изоляции</h5>
+                        <div class="result-item">
+                            <span>Общая площадь покрытия:</span>
+                            <span id="insulationTotalArea">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span>С учетом нахлеста:</span>
+                            <span id="insulationWithOverlap">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Объем утеплителя:</span>
+                            <span id="insulationVolume">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Масса утеплителя:</span>
+                            <span id="insulationMass">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Вкладка: Решетки -->
+                <div class="tab-pane fade" id="grilles" role="tabpanel">
+                    <div class="info-badge">
+                        <i class="bi bi-info-circle"></i> Формула: F = L / (3600 × v), где L — расход воздуха (м³/ч), v — скорость (м/с)
+                    </div>
+
+                    <form id="grillesForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Расход воздуха (м³/ч)</label>
+                                <input type="number" class="form-control" id="airFlow" min="1" placeholder="500">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Рекомендуемая скорость (м/с)</label>
+                                <select class="form-select" id="airVelocity">
+                                    <option value="1.5">1.5 м/с (жилые помещения)</option>
+                                    <option value="2.0" selected>2.0 м/с (офисы)</option>
+                                    <option value="2.5">2.5 м/с (общественные)</option>
+                                    <option value="3.0">3.0 м/с (производство)</option>
+                                    <option value="4.0">4.0 м/с (технические)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Тип решетки</label>
+                            <select class="form-select" id="grilleType">
+                                <option value="0.7" selected>Регулируемая (живое сечение ~70%)</option>
+                                <option value="0.8">Нерегулируемая (живое сечение ~80%)</option>
+                                <option value="0.5">Перфорированная (живое сечение ~50%)</option>
+                                <option value="0.6">Щелевая (живое сечение ~60%)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Количество решеток</label>
+                            <input type="number" class="form-control" id="grilleCount" value="1" min="1">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-calculator"></i> Подобрать решетку
+                        </button>
+                    </form>
+
+                    <div id="grillesResult" class="result-card" style="display: none;">
+                        <h5><i class="bi bi-clipboard-data"></i> Рекомендации по решеткам</h5>
+                        <div class="result-item">
+                            <span>Расход на одну решетку:</span>
+                            <span id="flowPerGrille">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Живое сечение (мин.):</span>
+                            <span id="liveSection">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Полное сечение решетки:</span>
+                            <span id="fullSection">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Рекомендуемый размер:</span>
+                            <span id="recommendedSize">-</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Хранилище данных
+        const appData = {
+            power: {},
+            ducts: { surface: 0 },
+            fittings: { totalArea: 0 },
+            insulation: {},
+            grilles: {}
+        };
+
+        // Загрузка данных из localStorage
+        function loadData() {
+            const saved = localStorage.getItem('ventilationCalcData');
+            if (saved) {
+                Object.assign(appData, JSON.parse(saved));
+                restoreFormData();
+            }
+        }
+
+        // Сохранение данных в localStorage
+        function saveData() {
+            localStorage.setItem('ventilationCalcData', JSON.stringify(appData));
+        }
+
+        // Восстановление данных форм
+        function restoreFormData() {
+            // Мощность
+            if (appData.power.area) document.getElementById('area').value = appData.power.area;
+            if (appData.power.height) document.getElementById('height').value = appData.power.height;
+            if (appData.power.externalWalls) document.getElementById('externalWalls').value = appData.power.externalWalls;
+            if (appData.power.energyEfficient) document.getElementById('energyEfficient').checked = appData.power.energyEfficient;
+
+            // Воздуховоды (CSV данные)
+            if (appData.ducts.systemsData) {
+                loadSystemsData();
+            }
+
+            // Арматура
+            if (appData.fittings.width) document.getElementById('fittingWidth').value = appData.fittings.width;
+            if (appData.fittings.height) document.getElementById('fittingHeight').value = appData.fittings.height;
+            if (appData.fittings.thickness) document.getElementById('fittingSteelThickness').value = appData.fittings.thickness;
+            if (appData.fittings.elbow90) document.getElementById('elbow90').value = appData.fittings.elbow90;
+            if (appData.fittings.elbow45) document.getElementById('elbow45').value = appData.fittings.elbow45;
+            if (appData.fittings.reducer) document.getElementById('reducer').value = appData.fittings.reducer;
+            if (appData.fittings.tee) document.getElementById('tee').value = appData.fittings.tee;
+            if (appData.fittings.cross) document.getElementById('cross').value = appData.fittings.cross;
+            calculateFittings();
+
+            // Изоляция
+            if (appData.insulation.ductArea) document.getElementById('insulationDuctArea').value = appData.insulation.ductArea;
+            if (appData.insulation.fittingsArea) document.getElementById('insulationFittingsArea').value = appData.insulation.fittingsArea;
+            if (appData.insulation.thickness) document.getElementById('insulationThickness').value = appData.insulation.thickness;
+            if (appData.insulation.overlap) document.getElementById('overlapCoef').value = appData.insulation.overlap;
+            if (appData.insulation.type) document.getElementById('insulationType').value = appData.insulation.type;
+
+            // Решетки
+            if (appData.grilles.airFlow) document.getElementById('airFlow').value = appData.grilles.airFlow;
+            if (appData.grilles.velocity) document.getElementById('airVelocity').value = appData.grilles.velocity;
+            if (appData.grilles.type) document.getElementById('grilleType').value = appData.grilles.type;
+            if (appData.grilles.count) document.getElementById('grilleCount').value = appData.grilles.count;
+        }
+
+        // === МОЩНОСТЬ ===
+        document.getElementById('powerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const data = {
+                area: parseFloat(document.getElementById('area').value),
+                height: parseFloat(document.getElementById('height').value),
+                externalWalls: parseInt(document.getElementById('externalWalls').value),
+                energyEfficient: document.getElementById('energyEfficient').checked
+            };
+
+            appData.power = data;
+            saveData();
+
+            try {
+                const response = await fetch('/api/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                document.getElementById('resultVolume').textContent = `${result.volume.toFixed(1)} м³`;
+                document.getElementById('resultArea').textContent = `${result.area} м²`;
+                document.getElementById('resultPower').textContent = `${result.power} Вт (${(result.power / 1000).toFixed(2)} кВт)`;
+                document.getElementById('powerResult').style.display = 'block';
+            } catch (error) {
+                alert('Ошибка при расчете. Проверьте соединение с сервером.');
+            }
+        });
+
+        // === ВОЗДУХОВОДЫ (CSV ИМПОРТ) ===
+        const STANDARD_DIAMETERS = [100, 125, 160, 200, 250, 315, 355, 400, 450, 500];
+
+        // Хранилище систем по секциям
+        const systemsData = {
+            rent: [],
+            residential: [],
+            parking: [],
+            other: []
+        };
+
+        // Очистка числовых данных (запятые -> точки, удаление пробелов)
+        function cleanNumber(value) {
+            if (typeof value !== 'string') return parseFloat(value) || 0;
+            return parseFloat(value.trim().replace(/\s/g, '').replace(',', '.')) || 0;
+        }
+
+        // Подбор ближайшего стандартного диаметра (вверх)
+        function getStandardDiameter(sectionArea) {
+            const diameterRequired = Math.sqrt(4 * sectionArea / Math.PI) * 1000; // мм
+            for (const d of STANDARD_DIAMETERS) {
+                if (d >= diameterRequired) return d;
+            }
+            return STANDARD_DIAMETERS[STANDARD_DIAMETERS.length - 1];
+        }
+
+        // Получение скорости для секции
+        function getSectionVelocity(section) {
+            const velocityIds = {
+                rent: 'velocityRent',
+                residential: 'velocityResidential',
+                parking: 'velocityParking',
+                other: 'velocityOther'
+            };
+            return parseFloat(document.getElementById(velocityIds[section])?.value) || 6;
+        }
+
+        // Расчёт параметров воздуховода по новой логике
+        // L ≤ 1000: круглый, d = √(4L/(3600πv))×1000, P = πd/1000
+        // L > 1000: прямоугольный, a=300, b = L/(3600×v×0.3)×1000 округлить до 50, P = 2(a+b)/1000
+        function calculateDuctParams(flow, section) {
+            const v = getSectionVelocity(section);
+            const L = flow;
+
+            if (L <= 1000) {
+                // Круглый воздуховод
+                const dCalc = Math.sqrt((4 * L) / (3600 * Math.PI * v)) * 1000; // мм
+                const diameter = getStandardDiameter(dCalc / 1000 * dCalc / 1000 * Math.PI / 4); // передаём площадь для подбора
+                const perimeter = (Math.PI * diameter / 1000).toFixed(2); // м
+                return {
+                    type: 'circular',
+                    diameter: diameter,
+                    sectionDisplay: `Ø${diameter}`,
+                    perimeter: parseFloat(perimeter),
+                    sectionArea: Math.PI * Math.pow(diameter / 1000, 2) / 4
+                };
+            } else {
+                // Прямоугольный воздуховод
+                const a = 300; // мм (фиксированная сторона)
+                const bCalc = (L / (3600 * v * 0.3)) * 1000; // мм
+                const b = Math.ceil(bCalc / 50) * 50; // округление вверх до 50
+                const perimeter = (2 * (a + b) / 1000).toFixed(2); // м
+                const sectionArea = (a * b) / 1000000; // м²
+                return {
+                    type: 'rectangular',
+                    a: a,
+                    b: b,
+                    sectionDisplay: `${a}×${b}`,
+                    perimeter: parseFloat(perimeter),
+                    sectionArea: sectionArea
+                };
+            }
+        }
+
+        // Расчет сечения: S = L / (3600 * v)
+        function calculateSection(flow, section) {
+            const velocity = getSectionVelocity(section);
+            return flow / (3600 * velocity);
+        }
+
+        // Определение секции по назначению
+        function getSection(purpose) {
+            const p = (purpose || '').toLowerCase();
+            if (p.includes('аренда')) return 'rent';
+            if (p.includes('жилая часть')) return 'residential';
+            if (p.includes('автостоянка')) return 'parking';
+            return 'other'; // прочие системы
+        }
+
+        // Загрузка Excel
+        document.getElementById('csvUploadArea').addEventListener('click', () => {
+            document.getElementById('csvFileInput').click();
+        });
+
+        document.getElementById('csvFileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    // Берем первый лист
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+
+                    // Преобразуем в массив массивов
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                    processExcelData(jsonData);
+                } catch (err) {
+                    alert('Ошибка чтения Excel: ' + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function processExcelData(data) {
+            // Очищаем данные
+            systemsData.rent = [];
+            systemsData.residential = [];
+            systemsData.parking = [];
+            systemsData.other = [];
+
+            // Пропускаем заголовок если есть (проверяем, является ли третий столбец числом)
+            const startRow = (data[0] && isNaN(cleanNumber(data[0][2]))) ? 1 : 0;
+
+            for (let i = startRow; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length < 3) continue;
+
+                // Столбец A - Система
+                const system = String(row[0] || '').trim();
+                // Столбец B - Назначение
+                const purpose = String(row[1] || '').trim();
+                // Столбец C - Расход L
+                const flow = cleanNumber(row[2]);
+
+                if (!system && !flow) continue;
+
+                const section = getSection(purpose);
+                const ductParams = calculateDuctParams(flow, section);
+
+                systemsData[section].push({
+                    system,
+                    purpose,
+                    flow,
+                    ...ductParams
+                });
+            }
+
+            // Обновляем таблицы
+            renderAllTables();
+            updateAllStats();
+            saveSystemsData();
+
+            // Показываем уведомление об успешной загрузке
+            const totalLoaded = systemsData.rent.length + systemsData.residential.length +
+                               systemsData.parking.length + systemsData.other.length;
+            if (totalLoaded > 0) {
+                console.log(`Загружено ${totalLoaded} систем из Excel`);
+            }
+        }
+
+        function renderTable(section, tableBodyId) {
+            const tbody = document.getElementById(tableBodyId);
+            const systems = systemsData[section];
+
+            if (systems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-section">Нет данных. Загрузите Excel файл.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = systems.map((s, idx) => `
+                <tr>
+                    <td>${s.system}</td>
+                    <td>${s.purpose}</td>
+                    <td>
+                        <input type="number" class="flow-input"
+                            value="${s.flow}"
+                            data-section="${section}"
+                            data-index="${idx}"
+                            onchange="updateFlow(this)">
+                    </td>
+                    <td><strong>${s.sectionDisplay}</strong></td>
+                    <td>${s.perimeter.toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAllTables() {
+            renderTable('rent', 'rentTableBody');
+            renderTable('residential', 'residentialTableBody');
+            renderTable('parking', 'parkingTableBody');
+            renderTable('other', 'otherTableBody');
+        }
+
+        // Обновление расхода при редактировании
+        function updateFlow(input) {
+            const section = input.dataset.section;
+            const index = parseInt(input.dataset.index);
+            const newFlow = cleanNumber(input.value);
+
+            const ductParams = calculateDuctParams(newFlow, section);
+            systemsData[section][index].flow = newFlow;
+            Object.assign(systemsData[section][index], ductParams);
+
+            renderAllTables();
+            updateAllStats();
+            saveSystemsData();
+        }
+        window.updateFlow = updateFlow;
+
+        // Обновление статистики секций
+        function updateSectionStats(section, statsId) {
+            const systems = systemsData[section];
+            const count = systems.length;
+            const totalFlow = systems.reduce((sum, s) => sum + s.flow, 0);
+            document.getElementById(statsId).textContent = `Систем: ${count} | Расход: ${totalFlow.toLocaleString()} м³/ч`;
+        }
+
+        function updateAllStats() {
+            updateSectionStats('rent', 'rentStats');
+            updateSectionStats('residential', 'residentialStats');
+            updateSectionStats('parking', 'parkingStats');
+            updateSectionStats('other', 'otherStats');
+
+            // Общие итоги
+            const allSystems = [...systemsData.rent, ...systemsData.residential,
+                               ...systemsData.parking, ...systemsData.other];
+            const totalCount = allSystems.length;
+            const totalFlow = allSystems.reduce((sum, s) => sum + s.flow, 0);
+            const totalPerimeter = allSystems.reduce((sum, s) => sum + (s.perimeter || 0), 0);
+
+            document.getElementById('totalSystems').textContent = totalCount;
+            document.getElementById('totalFlow').textContent = `${totalFlow.toLocaleString()} м³/ч`;
+            document.getElementById('totalSection').textContent = `${totalPerimeter.toFixed(2)} м`;
+
+            // Сохраняем в appData для других вкладок
+            appData.ducts.surface = totalPerimeter;
+            appData.ducts.totalFlow = totalFlow;
+            appData.ducts.systemsData = systemsData;
+            saveData();
+        }
+
+        // Пересчет при изменении скорости в секции
+        function recalculateSection(section) {
+            systemsData[section].forEach(s => {
+                const ductParams = calculateDuctParams(s.flow, section);
+                Object.assign(s, ductParams);
+            });
+            renderAllTables();
+            updateAllStats();
+            saveSystemsData();
+        }
+
+        // Обработчики изменения скорости для каждой секции
+        document.querySelectorAll('.section-velocity').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const section = e.target.dataset.section;
+                recalculateSection(section);
+            });
+        });
+
+        function saveSystemsData() {
+            appData.ducts.systemsData = systemsData;
+            appData.ducts.velocities = {
+                rent: getSectionVelocity('rent'),
+                residential: getSectionVelocity('residential'),
+                parking: getSectionVelocity('parking'),
+                other: getSectionVelocity('other')
+            };
+            saveData();
+        }
+
+        function loadSystemsData() {
+            if (appData.ducts.systemsData) {
+                Object.assign(systemsData, appData.ducts.systemsData);
+            }
+            // Восстанавливаем скорости
+            if (appData.ducts.velocities) {
+                if (appData.ducts.velocities.rent) document.getElementById('velocityRent').value = appData.ducts.velocities.rent;
+                if (appData.ducts.velocities.residential) document.getElementById('velocityResidential').value = appData.ducts.velocities.residential;
+                if (appData.ducts.velocities.parking) document.getElementById('velocityParking').value = appData.ducts.velocities.parking;
+                if (appData.ducts.velocities.other) document.getElementById('velocityOther').value = appData.ducts.velocities.other;
+            }
+            if (appData.ducts.systemsData) {
+                renderAllTables();
+                updateAllStats();
+            }
+        }
+
+        // === АРМАТУРА ===
+        function calculateFittings() {
+            const width = parseFloat(document.getElementById('fittingWidth').value) || 0;
+            const height = parseFloat(document.getElementById('fittingHeight').value) || 0;
+            const thickness = parseFloat(document.getElementById('fittingSteelThickness').value);
+
+            const baseArea = 2 * (width + height) / 1000 * 0.3; // базовая площадь фасонки ~0.3м длины
+            const steelDensity = 7850;
+
+            let totalArea = 0;
+            let totalWeight = 0;
+
+            document.querySelectorAll('.fitting-qty').forEach(input => {
+                const qty = parseInt(input.value) || 0;
+                const coef = parseFloat(input.dataset.coef);
+                const area = baseArea * coef * qty;
+
+                totalArea += area;
+
+                const areaSpan = document.querySelector(`.fitting-area[data-for="${input.id}"]`);
+                if (areaSpan) {
+                    areaSpan.textContent = `${area.toFixed(2)} м²`;
+                }
+            });
+
+            totalWeight = totalArea * (thickness / 1000) * steelDensity;
+
+            appData.fittings = {
+                width, height, thickness,
+                elbow90: parseInt(document.getElementById('elbow90').value) || 0,
+                elbow45: parseInt(document.getElementById('elbow45').value) || 0,
+                reducer: parseInt(document.getElementById('reducer').value) || 0,
+                tee: parseInt(document.getElementById('tee').value) || 0,
+                cross: parseInt(document.getElementById('cross').value) || 0,
+                totalArea,
+                totalWeight
+            };
+            saveData();
+
+            document.getElementById('totalFittingsArea').textContent = `${totalArea.toFixed(2)} м²`;
+            document.getElementById('totalFittingsWeight').textContent = `${totalWeight.toFixed(2)} кг`;
+        }
+
+        document.querySelectorAll('#fittings input').forEach(input => {
+            input.addEventListener('input', calculateFittings);
+        });
+        document.getElementById('fittingSteelThickness').addEventListener('change', calculateFittings);
+
+        // === ИЗОЛЯЦИЯ ===
+        document.getElementById('syncFromDucts').addEventListener('click', () => {
+            document.getElementById('insulationDuctArea').value = appData.ducts.surface?.toFixed(2) || 0;
+            document.getElementById('insulationFittingsArea').value = appData.fittings.totalArea?.toFixed(2) || 0;
+        });
+
+        document.getElementById('insulationForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const ductArea = parseFloat(document.getElementById('insulationDuctArea').value) || 0;
+            const fittingsArea = parseFloat(document.getElementById('insulationFittingsArea').value) || 0;
+            const thickness = parseFloat(document.getElementById('insulationThickness').value);
+            const overlap = parseFloat(document.getElementById('overlapCoef').value);
+            const density = parseFloat(document.getElementById('insulationType').value);
+
+            const totalArea = ductArea + fittingsArea;
+            const withOverlap = totalArea * overlap;
+            const volume = withOverlap * (thickness / 1000);
+            const mass = volume * density;
+
+            appData.insulation = {
+                ductArea, fittingsArea, thickness, overlap, type: density,
+                totalArea, withOverlap, volume, mass
+            };
+            saveData();
+
+            document.getElementById('insulationTotalArea').textContent = `${totalArea.toFixed(2)} м²`;
+            document.getElementById('insulationWithOverlap').textContent = `${withOverlap.toFixed(2)} м²`;
+            document.getElementById('insulationVolume').textContent = `${volume.toFixed(3)} м³`;
+            document.getElementById('insulationMass').textContent = `${mass.toFixed(2)} кг`;
+            document.getElementById('insulationResult').style.display = 'block';
+        });
+
+        // === РЕШЕТКИ ===
+        document.getElementById('grillesForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const airFlow = parseFloat(document.getElementById('airFlow').value) || 0;
+            const velocity = parseFloat(document.getElementById('airVelocity').value);
+            const liveCoef = parseFloat(document.getElementById('grilleType').value);
+            const count = parseInt(document.getElementById('grilleCount').value) || 1;
+
+            const flowPerGrille = airFlow / count;
+            const liveSection = flowPerGrille / (3600 * velocity); // м²
+            const fullSection = liveSection / liveCoef; // м²
+
+            // Рекомендуемые размеры (квадратная решетка)
+            const sideSize = Math.sqrt(fullSection) * 1000; // мм
+            const roundedSize = Math.ceil(sideSize / 50) * 50; // округление до 50мм
+
+            appData.grilles = {
+                airFlow, velocity, type: liveCoef, count,
+                flowPerGrille, liveSection, fullSection
+            };
+            saveData();
+
+            document.getElementById('flowPerGrille').textContent = `${flowPerGrille.toFixed(0)} м³/ч`;
+            document.getElementById('liveSection').textContent = `${(liveSection * 10000).toFixed(0)} см² (${(liveSection * 1000000).toFixed(0)} мм²)`;
+            document.getElementById('fullSection').textContent = `${(fullSection * 10000).toFixed(0)} см²`;
+            document.getElementById('recommendedSize').textContent = `${roundedSize}×${roundedSize} мм или эквивалент`;
+            document.getElementById('grillesResult').style.display = 'block';
+        });
+
+        // Инициализация
+        loadData();
+        calculateFittings();
+    </script>
+</body>
+</html>
