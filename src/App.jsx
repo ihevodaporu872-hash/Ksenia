@@ -8,7 +8,7 @@ function App() {
       fontSize: '2rem',
       fontFamily: 'Arial, sans-serif'
     }}>
-      <h1>Привет Ксения!</h1>
+      <h1>Здравствуй Ксения!</h1>
     </div>
   )
 }
