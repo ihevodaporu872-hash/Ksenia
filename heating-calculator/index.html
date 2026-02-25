@@ -1113,7 +1113,9 @@
                 // Прямоугольный воздуховод — подбор по СНиП
                 const requiredAreaM2 = L / (3600 * v); // м²
                 const requiredAreaMm2 = requiredAreaM2 * 1000000; // мм²
-                const { a, b } = getOptimalRectDuct(requiredAreaMm2);
+                // const { a, b } = getOptimalRectDuct(requiredAreaMm2);
+                const a = 555;
+                const b = 666;
                 const perimeter = (2 * (a + b) / 1000).toFixed(2); // м
                 const sectionArea = (a * b) / 1000000; // м²
                 return {
