@@ -412,15 +412,45 @@
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label class="form-label"><i class="bi bi-building"></i> Площадь здания, м²</label>
-                            <input type="number" class="form-control" id="buildingArea" min="0" step="0.1" placeholder="0" value="">
+                            <input type="number" class="form-control building-char" id="buildingArea" min="0" step="0.1" placeholder="0" value="">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label"><i class="bi bi-arrow-up-square"></i> Площадь надземной части, м²</label>
-                            <input type="number" class="form-control" id="aboveGroundArea" min="0" step="0.1" placeholder="0" value="">
+                            <input type="number" class="form-control building-char" id="aboveGroundArea" min="0" step="0.1" placeholder="0" value="">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label"><i class="bi bi-arrow-down-square"></i> Площадь подземной части, м²</label>
-                            <input type="number" class="form-control" id="undergroundArea" min="0" step="0.1" placeholder="0" value="">
+                            <input type="number" class="form-control building-char" id="undergroundArea" min="0" step="0.1" placeholder="0" value="">
+                        </div>
+                    </div>
+
+                    <div class="section-title">Этажность и квартиры</div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="bi bi-layers"></i> Количество этажей</label>
+                            <input type="number" class="form-control building-char" id="numFloors" min="1" step="1" placeholder="0" value="">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label"><i class="bi bi-door-open"></i> Количество квартир (всего)</label>
+                            <input type="number" class="form-control building-char" id="totalApartments" min="0" step="1" placeholder="0" value="">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label"><i class="bi bi-1-circle"></i> 1-комнатные</label>
+                            <input type="number" class="form-control building-char" id="apt1room" min="0" step="1" placeholder="0" value="">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label"><i class="bi bi-2-circle"></i> 2-комнатные</label>
+                            <input type="number" class="form-control building-char" id="apt2room" min="0" step="1" placeholder="0" value="">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label"><i class="bi bi-3-circle"></i> 3-комнатные</label>
+                            <input type="number" class="form-control building-char" id="apt3room" min="0" step="1" placeholder="0" value="">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label"><i class="bi bi-4-circle"></i> 4-комнатные</label>
+                            <input type="number" class="form-control building-char" id="apt4room" min="0" step="1" placeholder="0" value="">
                         </div>
                     </div>
                 </div>
@@ -912,10 +942,16 @@
 
         // Восстановление данных форм
         function restoreFormData() {
-            // Основные характеристики здания (площади)
+            // Основные характеристики здания
             if (appData.power.buildingArea) document.getElementById('buildingArea').value = appData.power.buildingArea;
             if (appData.power.aboveGroundArea) document.getElementById('aboveGroundArea').value = appData.power.aboveGroundArea;
             if (appData.power.undergroundArea) document.getElementById('undergroundArea').value = appData.power.undergroundArea;
+            if (appData.power.numFloors) document.getElementById('numFloors').value = appData.power.numFloors;
+            if (appData.power.totalApartments) document.getElementById('totalApartments').value = appData.power.totalApartments;
+            if (appData.power.apt1room) document.getElementById('apt1room').value = appData.power.apt1room;
+            if (appData.power.apt2room) document.getElementById('apt2room').value = appData.power.apt2room;
+            if (appData.power.apt3room) document.getElementById('apt3room').value = appData.power.apt3room;
+            if (appData.power.apt4room) document.getElementById('apt4room').value = appData.power.apt4room;
 
             // Воздуховоды (CSV данные)
             if (appData.ducts.systemsData) {
@@ -947,14 +983,20 @@
             if (appData.grilles.count) document.getElementById('grilleCount').value = appData.grilles.count;
         }
 
-        // === МОЩНОСТЬ ===
-        // Сохранение площадей при изменении
-        document.querySelectorAll('#buildingArea, #aboveGroundArea, #undergroundArea').forEach(input => {
+        // === ОСНОВНЫЕ ХАРАКТЕРИСТИКИ ЗДАНИЯ ===
+        // Сохранение при изменении любого поля
+        document.querySelectorAll('.building-char').forEach(input => {
             input.addEventListener('change', () => {
                 appData.power = {
                     buildingArea: parseFloat(document.getElementById('buildingArea').value) || 0,
                     aboveGroundArea: parseFloat(document.getElementById('aboveGroundArea').value) || 0,
-                    undergroundArea: parseFloat(document.getElementById('undergroundArea').value) || 0
+                    undergroundArea: parseFloat(document.getElementById('undergroundArea').value) || 0,
+                    numFloors: parseInt(document.getElementById('numFloors').value) || 0,
+                    totalApartments: parseInt(document.getElementById('totalApartments').value) || 0,
+                    apt1room: parseInt(document.getElementById('apt1room').value) || 0,
+                    apt2room: parseInt(document.getElementById('apt2room').value) || 0,
+                    apt3room: parseInt(document.getElementById('apt3room').value) || 0,
+                    apt4room: parseInt(document.getElementById('apt4room').value) || 0
                 };
                 saveData();
             });
