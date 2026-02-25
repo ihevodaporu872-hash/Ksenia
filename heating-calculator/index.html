@@ -317,6 +317,13 @@
             margin-left: 8px;
         }
 
+        .nested-accordion .area-total {
+            font-size: 0.78rem;
+            color: #666;
+            margin-left: 10px;
+            font-weight: 500;
+        }
+
         .main-container {
             max-width: 1000px;
         }
@@ -1290,6 +1297,13 @@
             </div>`;
         }
 
+        function calcGroupSurface(group) {
+            return group.reduce((sum, { s }) => {
+                const routeLen = getRouteLength(s.startFloor || 1);
+                return sum + (s.perimeter || 0) * routeLen;
+            }, 0);
+        }
+
         function renderSectionContent(section, contentId) {
             const container = document.getElementById(contentId);
             const systems = systemsData[section];
@@ -1302,6 +1316,9 @@
             const emptySupply = systems.length === 0 ? 'Нет данных. Загрузите Excel файл.' : 'Приточные системы не найдены';
             const emptyExtract = systems.length === 0 ? 'Нет данных. Загрузите Excel файл.' : 'Вытяжные системы не найдены';
 
+            const supplyS = calcGroupSurface(supply);
+            const extractS = calcGroupSurface(extract);
+
             container.innerHTML = `
                 <div class="accordion nested-accordion" id="${section}SubAccordion">
                     <div class="accordion-item">
@@ -1309,6 +1326,7 @@
                             <button class="accordion-button py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#${section}Supply">
                                 <i class="bi bi-arrow-down-circle me-1" style="color:#28a745;"></i> Приточные системы
                                 <span class="badge sub-badge" style="background:#28a745;">${supply.length}</span>
+                                <span class="area-total">Σ S: ${supplyS.toFixed(1)} м²</span>
                             </button>
                         </h2>
                         <div id="${section}Supply" class="accordion-collapse collapse show">
@@ -1322,6 +1340,7 @@
                             <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#${section}Extract">
                                 <i class="bi bi-arrow-up-circle me-1" style="color:#0d6efd;"></i> Вытяжные системы
                                 <span class="badge sub-badge" style="background:#0d6efd;">${extract.length}</span>
+                                <span class="area-total">Σ S: ${extractS.toFixed(1)} м²</span>
                             </button>
                         </h2>
                         <div id="${section}Extract" class="accordion-collapse collapse show">
