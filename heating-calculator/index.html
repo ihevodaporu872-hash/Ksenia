@@ -1030,11 +1030,15 @@
         const STANDARD_RECT_SIDES = [150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 1000, 1200];
 
         // Подбор оптимальной пары сторон прямоугольного воздуховода
-        // Стартовая точка: A = √F (стремление к квадратному сечению)
-        // Ограничения: b/a ≤ 3, штраф при ширине > 600мм и высоте < 400мм
+        // Собирательный алгоритм: собираем ВСЕ допустимые пары, затем выбираем лучшую
+        // Стартовая точка: A = √F (стремление к квадрату)
+        // Приоритет высотам 400-600мм, штраф за широкие плоские сечения
         function getOptimalRectDuct(requiredAreaMm2) {
-            let best = null;
+            const PREFERRED_HEIGHTS = [400, 500, 600];
+            const MAX_EXCESS = 0.5; // порог избытка для предпочтительных высот (50%)
+            const candidates = [];
 
+            // 1. Собираем ВСЕ допустимые пары
             for (let i = 0; i < STANDARD_RECT_SIDES.length; i++) {
                 const a = STANDARD_RECT_SIDES[i]; // высота (меньшая сторона)
                 for (let j = i; j < STANDARD_RECT_SIDES.length; j++) {
@@ -1046,28 +1050,33 @@
                     const ratio = b / a;
                     const excessFraction = (area - requiredAreaMm2) / requiredAreaMm2;
 
-                    // Близость к квадрату: ratio=1 → 0 (идеал), ratio=3 → 2
-                    const squareScore = ratio - 1;
+                    // Близость к квадрату (×3 — сильный приоритет): ratio=1 → 0, ratio=3 → 6
+                    const squareScore = (ratio - 1) * 3;
 
-                    // Штраф за широкий плоский воздуховод:
-                    // ширина > 600 при высоте < 400 — увеличиваем высоту до 400-500
+                    // Штраф: ширина > 600 при высоте < 400
                     let widthPenalty = 0;
                     if (b > 600 && a < 400) widthPenalty = 2;
 
-                    // Итоговый рейтинг (чем меньше — тем лучше)
                     const score = squareScore + excessFraction + widthPenalty;
 
-                    if (!best || score < best.score) {
-                        best = { a, b, score };
-                    }
+                    candidates.push({ a, b, score, excessFraction });
                 }
             }
-            // Если не нашли (очень большой расход) — берём максимальные
-            if (!best) {
+
+            if (candidates.length === 0) {
                 const maxSide = STANDARD_RECT_SIDES[STANDARD_RECT_SIDES.length - 1];
-                best = { a: maxSide, b: maxSide, score: 0 };
+                return { a: maxSide, b: maxSide };
             }
-            return best;
+
+            // 2. Приоритет: предпочтительные высоты (400, 500, 600) с допустимым избытком
+            const preferred = candidates.filter(c =>
+                PREFERRED_HEIGHTS.includes(c.a) && c.excessFraction <= MAX_EXCESS
+            );
+
+            // 3. Если есть подходящие — берём из них, иначе лучшую из всех
+            const pool = preferred.length > 0 ? preferred : candidates;
+            pool.sort((x, y) => x.score - y.score);
+            return pool[0];
         }
 
         // Расчёт параметров воздуховода
