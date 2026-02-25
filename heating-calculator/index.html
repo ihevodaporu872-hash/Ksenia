@@ -450,6 +450,25 @@
                         <small class="text-muted">Стандартные диаметры: 100, 125, 160, 200, 250, 315, 355, 400, 450, 500 мм</small>
                     </div>
 
+                    <!-- Характеристики объекта -->
+                    <div class="card mb-3" style="border: 1px solid #dee2e6; border-radius: 10px;">
+                        <div class="card-header" style="background: #e7f1ff; border-radius: 10px 10px 0 0; padding: 10px 15px;">
+                            <i class="bi bi-building me-2"></i><strong>Характеристики объекта</strong>
+                        </div>
+                        <div class="card-body" style="padding: 15px;">
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label mb-1"><i class="bi bi-layers me-1"></i>Этажность</label>
+                                    <input type="number" class="form-control" id="buildingFloors" min="1" max="100" step="1" value="9" placeholder="Кол-во этажей">
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label mb-1"><i class="bi bi-arrows-vertical me-1"></i>Высота типового этажа (м)</label>
+                                    <input type="number" class="form-control" id="floorHeight" min="1" max="20" step="0.1" value="3.0" placeholder="Высота этажа, м">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Аккордеон секций -->
                     <div class="accordion" id="ductsAccordion">
 
