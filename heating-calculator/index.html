@@ -408,54 +408,19 @@
 
                 <!-- Вкладка: Мощность -->
                 <div class="tab-pane fade show active" id="power" role="tabpanel">
-                    <form id="powerForm">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label"><i class="bi bi-aspect-ratio"></i> Площадь помещения (м²)</label>
-                                <input type="number" class="form-control" id="area" min="1" step="0.1" required placeholder="25">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label"><i class="bi bi-arrows-vertical"></i> Высота потолков (м)</label>
-                                <input type="number" class="form-control" id="height" min="1" step="0.1" required placeholder="2.7">
-                            </div>
+                    <div class="section-title">Площади здания</div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label"><i class="bi bi-building"></i> Площадь здания, м²</label>
+                            <input type="number" class="form-control" id="buildingArea" min="0" step="0.1" placeholder="0" value="">
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label"><i class="bi bi-bricks"></i> Количество внешних стен</label>
-                                <select class="form-select" id="externalWalls" required>
-                                    <option value="0">0 стен</option>
-                                    <option value="1" selected>1 стена</option>
-                                    <option value="2">2 стены</option>
-                                    <option value="3">3 стены</option>
-                                    <option value="4">4 стены</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3 d-flex align-items-end">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="energyEfficient">
-                                    <label class="form-check-label" for="energyEfficient">
-                                        <i class="bi bi-window"></i> Энергосберегающие окна
-                                    </label>
-                                </div>
-                            </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label"><i class="bi bi-arrow-up-square"></i> Площадь надземной части, м²</label>
+                            <input type="number" class="form-control" id="aboveGroundArea" min="0" step="0.1" placeholder="0" value="">
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-calculator"></i> Рассчитать мощность
-                        </button>
-                    </form>
-                    <div id="powerResult" class="result-card" style="display: none;">
-                        <h5><i class="bi bi-clipboard-data"></i> Результаты расчета</h5>
-                        <div class="result-item">
-                            <span>Объем помещения:</span>
-                            <span id="resultVolume">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span>Площадь:</span>
-                            <span id="resultArea">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span>Требуемая мощность:</span>
-                            <span id="resultPower">-</span>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label"><i class="bi bi-arrow-down-square"></i> Площадь подземной части, м²</label>
+                            <input type="number" class="form-control" id="undergroundArea" min="0" step="0.1" placeholder="0" value="">
                         </div>
                     </div>
                 </div>
@@ -947,11 +912,10 @@
 
         // Восстановление данных форм
         function restoreFormData() {
-            // Мощность
-            if (appData.power.area) document.getElementById('area').value = appData.power.area;
-            if (appData.power.height) document.getElementById('height').value = appData.power.height;
-            if (appData.power.externalWalls) document.getElementById('externalWalls').value = appData.power.externalWalls;
-            if (appData.power.energyEfficient) document.getElementById('energyEfficient').checked = appData.power.energyEfficient;
+            // Мощность (площади)
+            if (appData.power.buildingArea) document.getElementById('buildingArea').value = appData.power.buildingArea;
+            if (appData.power.aboveGroundArea) document.getElementById('aboveGroundArea').value = appData.power.aboveGroundArea;
+            if (appData.power.undergroundArea) document.getElementById('undergroundArea').value = appData.power.undergroundArea;
 
             // Воздуховоды (CSV данные)
             if (appData.ducts.systemsData) {
@@ -984,34 +948,16 @@
         }
 
         // === МОЩНОСТЬ ===
-        document.getElementById('powerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const data = {
-                area: parseFloat(document.getElementById('area').value),
-                height: parseFloat(document.getElementById('height').value),
-                externalWalls: parseInt(document.getElementById('externalWalls').value),
-                energyEfficient: document.getElementById('energyEfficient').checked
-            };
-
-            appData.power = data;
-            saveData();
-
-            try {
-                const response = await fetch('/api/calculate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-
-                document.getElementById('resultVolume').textContent = `${result.volume.toFixed(1)} м³`;
-                document.getElementById('resultArea').textContent = `${result.area} м²`;
-                document.getElementById('resultPower').textContent = `${result.power} Вт (${(result.power / 1000).toFixed(2)} кВт)`;
-                document.getElementById('powerResult').style.display = 'block';
-            } catch (error) {
-                alert('Ошибка при расчете. Проверьте соединение с сервером.');
-            }
+        // Сохранение площадей при изменении
+        document.querySelectorAll('#buildingArea, #aboveGroundArea, #undergroundArea').forEach(input => {
+            input.addEventListener('change', () => {
+                appData.power = {
+                    buildingArea: parseFloat(document.getElementById('buildingArea').value) || 0,
+                    aboveGroundArea: parseFloat(document.getElementById('aboveGroundArea').value) || 0,
+                    undergroundArea: parseFloat(document.getElementById('undergroundArea').value) || 0
+                };
+                saveData();
+            });
         });
 
         // === ВОЗДУХОВОДЫ (CSV ИМПОРТ) ===
