@@ -1030,27 +1030,42 @@
         const STANDARD_RECT_SIDES = [150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 1000, 1200];
 
         // Подбор оптимальной пары сторон прямоугольного воздуховода
-        // Критерии: a×b >= требуемой площади, b/a <= 3, минимальная избыточная площадь
+        // Стартовая точка: A = √F (стремление к квадратному сечению)
+        // Ограничения: b/a ≤ 3, штраф при ширине > 600мм и высоте < 400мм
         function getOptimalRectDuct(requiredAreaMm2) {
             let best = null;
+
             for (let i = 0; i < STANDARD_RECT_SIDES.length; i++) {
-                const a = STANDARD_RECT_SIDES[i];
+                const a = STANDARD_RECT_SIDES[i]; // высота (меньшая сторона)
                 for (let j = i; j < STANDARD_RECT_SIDES.length; j++) {
-                    const b = STANDARD_RECT_SIDES[j];
+                    const b = STANDARD_RECT_SIDES[j]; // ширина (большая сторона)
                     const area = a * b;
                     if (area < requiredAreaMm2) continue;
-                    if (b / a > 3) break; // дальше соотношение только хуже
+                    if (b / a > 3) break;
+
                     const ratio = b / a;
-                    const excess = area - requiredAreaMm2;
-                    if (!best || excess < best.excess || (excess === best.excess && ratio < best.ratio)) {
-                        best = { a, b, excess, ratio };
+                    const excessFraction = (area - requiredAreaMm2) / requiredAreaMm2;
+
+                    // Близость к квадрату: ratio=1 → 0 (идеал), ratio=3 → 2
+                    const squareScore = ratio - 1;
+
+                    // Штраф за широкий плоский воздуховод:
+                    // ширина > 600 при высоте < 400 — увеличиваем высоту до 400-500
+                    let widthPenalty = 0;
+                    if (b > 600 && a < 400) widthPenalty = 2;
+
+                    // Итоговый рейтинг (чем меньше — тем лучше)
+                    const score = squareScore + excessFraction + widthPenalty;
+
+                    if (!best || score < best.score) {
+                        best = { a, b, score };
                     }
                 }
             }
             // Если не нашли (очень большой расход) — берём максимальные
             if (!best) {
                 const maxSide = STANDARD_RECT_SIDES[STANDARD_RECT_SIDES.length - 1];
-                best = { a: maxSide, b: maxSide, excess: 0, ratio: 1 };
+                best = { a: maxSide, b: maxSide, score: 0 };
             }
             return best;
         }
