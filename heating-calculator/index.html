@@ -1134,6 +1134,44 @@
             }
         }
 
+        // Расчёт стояка для "Прочих систем": поэтажное нарастание расхода
+        function calculateRiserData(totalFlow, section, startFloor) {
+            const totalFloors = parseInt(document.getElementById('buildingFloors').value) || 9;
+            const floorHeight = parseFloat(document.getElementById('floorHeight').value) || 3.0;
+            const numFloors = Math.max(1, totalFloors - (startFloor || 1) + 1);
+            const flowPerFloor = totalFlow / numFloors;
+
+            let totalRiserSurface = 0;
+            let firstDuct = null;
+            let lastDuct = null;
+
+            for (let i = 1; i <= numFloors; i++) {
+                const floorFlow = i * flowPerFloor;
+                const ductParams = calculateDuctParams(floorFlow, section);
+                const floorSurface = ductParams.perimeter * floorHeight;
+                totalRiserSurface += floorSurface;
+
+                if (i === 1) firstDuct = ductParams;
+                if (i === numFloors) lastDuct = ductParams;
+            }
+
+            return {
+                sectionDisplay: `${firstDuct.sectionDisplay} → ${lastDuct.sectionDisplay}`,
+                perimeterMax: lastDuct.perimeter,
+                riserSurface: totalRiserSurface,
+                numFloors: numFloors
+            };
+        }
+
+        // Площадь поверхности системы (с учётом стояка для "other")
+        function getSystemSurface(s, section) {
+            if (section === 'other') {
+                const riser = calculateRiserData(s.flow, section, s.startFloor);
+                return riser.riserSurface;
+            }
+            return (s.perimeter || 0) * getRouteLength(s.startFloor || 1);
+        }
+
         // Расчет сечения: S = L / (3600 * v)
         function calculateSection(flow, section) {
             const velocity = getSectionVelocity(section);
@@ -1249,6 +1287,40 @@
             return systems.map(({ s, idx }) => {
                 const startFloor = s.startFloor || 1;
                 const routeLength = getRouteLength(startFloor);
+
+                // Для "Прочих систем" — расчёт стояка с нарастанием расхода по этажам
+                if (section === 'other') {
+                    const riser = calculateRiserData(s.flow, section, startFloor);
+                    return `
+                    <tr>
+                        <td>${s.system}</td>
+                        <td>${s.purpose}</td>
+                        <td>
+                            <input type="number" class="flow-input"
+                                value="${s.flow}"
+                                data-section="${section}"
+                                data-index="${idx}"
+                                onchange="updateFlow(this)">
+                        </td>
+                        <td><strong style="font-size:0.8em;">${riser.sectionDisplay}</strong></td>
+                        <td>${riser.perimeterMax.toFixed(2)}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="text-muted" style="font-size:0.75em; white-space:nowrap;">с</span>
+                                <input type="number" class="flow-input" style="width:50px;"
+                                    value="${startFloor}"
+                                    min="1"
+                                    data-section="${section}"
+                                    data-index="${idx}"
+                                    onchange="updateStartFloor(this)">
+                                <span class="text-muted" style="font-size:0.75em; white-space:nowrap;">эт.</span>
+                                <strong>${routeLength.toFixed(1)}</strong>
+                            </div>
+                        </td>
+                        <td><strong>${riser.riserSurface.toFixed(2)}</strong></td>
+                    </tr>`;
+                }
+
                 const surfaceArea = s.perimeter * routeLength;
                 return `
                 <tr>
@@ -1297,10 +1369,9 @@
             </div>`;
         }
 
-        function calcGroupSurface(group) {
+        function calcGroupSurface(group, section) {
             return group.reduce((sum, { s }) => {
-                const routeLen = getRouteLength(s.startFloor || 1);
-                return sum + (s.perimeter || 0) * routeLen;
+                return sum + getSystemSurface(s, section);
             }, 0);
         }
 
@@ -1316,8 +1387,8 @@
             const emptySupply = systems.length === 0 ? 'Нет данных. Загрузите Excel файл.' : 'Приточные системы не найдены';
             const emptyExtract = systems.length === 0 ? 'Нет данных. Загрузите Excel файл.' : 'Вытяжные системы не найдены';
 
-            const supplyS = calcGroupSurface(supply);
-            const extractS = calcGroupSurface(extract);
+            const supplyS = calcGroupSurface(supply, section);
+            const extractS = calcGroupSurface(extract, section);
 
             container.innerHTML = `
                 <div class="accordion nested-accordion" id="${section}SubAccordion">
@@ -1412,7 +1483,10 @@
             const totalFlow = allSystems.reduce((sum, s) => sum + s.flow, 0);
             const totalPerimeter = allSystems.reduce((sum, s) => sum + (s.perimeter || 0), 0);
             const totalRouteLen = allSystems.reduce((sum, s) => sum + getRouteLength(s.startFloor || 1), 0);
-            const totalSurface = allSystems.reduce((sum, s) => sum + (s.perimeter || 0) * getRouteLength(s.startFloor || 1), 0);
+            // Для "other" используем поэтажный расчёт стояка
+            const totalSurface = ['rent', 'residential', 'parking', 'smoke'].reduce((sum, sec) => {
+                return sum + systemsData[sec].reduce((s2, sys) => s2 + getSystemSurface(sys, sec), 0);
+            }, 0) + systemsData.other.reduce((sum, sys) => sum + getSystemSurface(sys, 'other'), 0);
 
             document.getElementById('totalSystems').textContent = totalCount;
             document.getElementById('totalFlow').textContent = `${totalFlow.toLocaleString()} м³/ч`;
@@ -1523,10 +1597,20 @@
                         } else {
                             group.items.forEach(item => {
                                 const routeLen = getRouteLength(item.startFloor || 1);
-                                const surface = item.perimeter * routeLen;
-                                rows.push([item.system, item.purpose, item.flow, item.sectionDisplay,
-                                    parseFloat(item.perimeter.toFixed(2)), parseFloat(routeLen.toFixed(1)), parseFloat(surface.toFixed(2))]);
-                                sectionFlow += item.flow; sectionPerimeter += item.perimeter;
+                                let displaySection, displayPerimeter, surface;
+                                if (section.key === 'other') {
+                                    const riser = calculateRiserData(item.flow, section.key, item.startFloor);
+                                    displaySection = riser.sectionDisplay;
+                                    displayPerimeter = riser.perimeterMax;
+                                    surface = riser.riserSurface;
+                                } else {
+                                    displaySection = item.sectionDisplay;
+                                    displayPerimeter = item.perimeter;
+                                    surface = item.perimeter * routeLen;
+                                }
+                                rows.push([item.system, item.purpose, item.flow, displaySection,
+                                    parseFloat(displayPerimeter.toFixed(2)), parseFloat(routeLen.toFixed(1)), parseFloat(surface.toFixed(2))]);
+                                sectionFlow += item.flow; sectionPerimeter += displayPerimeter;
                                 sectionRouteLen += routeLen; sectionSurface += surface;
                             });
                         }
