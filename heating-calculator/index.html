@@ -1030,48 +1030,45 @@
         const STANDARD_RECT_SIDES = [150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 1000, 1200];
 
         // Подбор оптимальной пары сторон прямоугольного воздуховода
-        // Собирательный алгоритм: idealSide = √F, полный перебор a×b,
-        // штраф за a=300 при idealSide>350, бонус для высот 400-600
+        // Жёсткий фильтр: idealSide > 400 → не рассматриваем высоту ≤ 300
+        // Бонус -10 для высот [400, 500, 600, 800], ratio ≤ 3.5
         function getOptimalRectDuct(requiredAreaMm2) {
-            console.log("РАСЧЕТ ДЛЯ ПЛОЩАДИ:", requiredAreaMm2);
-            return { a: 999, b: 999 };
-            const PREFERRED_HEIGHTS = [400, 500, 600];
+            const PREFERRED_HEIGHTS = [400, 500, 600, 800];
             const candidates = [];
-
-            // 1. Сначала определяем "идеальную" сторону квадрата
             const idealSide = Math.sqrt(requiredAreaMm2);
 
-            for (let i = 0; i < STANDARD_RECT_SIDES.length; i++) {
-                const a = STANDARD_RECT_SIDES[i]; // высота
-                for (let j = 0; j < STANDARD_RECT_SIDES.length; j++) {
-                    const b = STANDARD_RECT_SIDES[j]; // ширина
+            for (let a of STANDARD_RECT_SIDES) {
+                // ЖЕСТКИЙ ФИЛЬТР: Если расход огромный (idealSide > 400),
+                // вообще не рассматриваем высоту 300 и меньше.
+                if (idealSide > 400 && a <= 300) continue;
 
+                for (let b of STANDARD_RECT_SIDES) {
                     const area = a * b;
-                    if (area < requiredAreaMm2) continue; // Мало площади
+                    if (area < requiredAreaMm2) continue;
 
                     const ratio = Math.max(a, b) / Math.min(a, b);
-                    if (ratio > 3) continue; // Слишком плоский
+                    if (ratio > 3.5) continue; // Не даем делать "щели" типа 300×4550
 
                     const excessFraction = (area - requiredAreaMm2) / requiredAreaMm2;
 
-                    // СЧИТАЕМ SCORE:
-                    // Чем ближе к квадрату (ratio=1), тем лучше
-                    // Чем меньше избыток площади, тем лучше
-                    // Штрафуем высоту 300, если площадь позволяет взять больше
-                    let penalty = 0;
-                    if (a === 300 && idealSide > 350) penalty = 5;
-                    if (PREFERRED_HEIGHTS.includes(a)) penalty = -2; // Бонус для 400-600
+                    // SCORE: чем меньше, тем лучше
+                    let bonus = 0;
+                    if (PREFERRED_HEIGHTS.includes(a)) bonus = -10; // Сильный приоритет нормальным высотам
 
-                    const score = (ratio - 1) * 4 + excessFraction * 2 + penalty;
-
+                    const score = (ratio - 1) * 5 + (excessFraction * 2) + bonus;
                     candidates.push({ a, b, score });
                 }
             }
 
-            // Сортируем ВСЕ варианты по score (самый низкий — лучший)
-            candidates.sort((x, y) => x.score - y.score);
+            // Если ничего не нашли (бывает на гигантских расходах), берем максимум
+            if (candidates.length === 0) {
+                const max = STANDARD_RECT_SIDES[STANDARD_RECT_SIDES.length - 1];
+                return { a: max, b: max };
+            }
 
-            return candidates[0] || { a: 300, b: 300 }; // Заглушка, если ничего не подошло
+            // Сортировка: самый маленький score в начало
+            candidates.sort((x, y) => x.score - y.score);
+            return candidates[0];
         }
 
         // Расчёт параметров воздуховода
