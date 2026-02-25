@@ -598,6 +598,29 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Секция 5: Противодымная вентиляция -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header d-flex align-items-center">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#smokeVent">
+                                    <i class="bi bi-shield-exclamation me-2"></i>
+                                    <span class="accordion-header-stats">
+                                        <span>Противодымная вентиляция</span>
+                                        <span class="header-stat" id="smokeStats">Систем: 0 | Расход: 0 м³/ч</span>
+                                    </span>
+                                </button>
+                                <div class="velocity-inline" onclick="event.stopPropagation()">
+                                    <label>v:</label>
+                                    <input type="number" class="section-velocity" id="velocitySmoke" value="10" min="1" max="15" step="0.5" data-section="smoke">
+                                    <span>м/с</span>
+                                </div>
+                            </h2>
+                            <div id="smokeVent" class="accordion-collapse collapse" data-bs-parent="#ductsAccordion">
+                                <div class="accordion-body p-2">
+                                    <div id="smokeContent"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Общий итог -->
@@ -999,7 +1022,8 @@
             rent: [],
             residential: [],
             parking: [],
-            other: []
+            other: [],
+            smoke: []
         };
 
         // Очистка числовых данных (запятые -> точки, удаление пробелов)
@@ -1023,9 +1047,10 @@
                 rent: 'velocityRent',
                 residential: 'velocityResidential',
                 parking: 'velocityParking',
-                other: 'velocityOther'
+                other: 'velocityOther',
+                smoke: 'velocitySmoke'
             };
-            const defaults = { rent: 5, residential: 3, parking: 8, other: 3 };
+            const defaults = { rent: 5, residential: 3, parking: 8, other: 3, smoke: 10 };
             return parseFloat(document.getElementById(velocityIds[section])?.value) || defaults[section] || 5;
         }
 
@@ -1126,6 +1151,7 @@
             if (p.includes('аренда')) return 'rent';
             if (p.includes('жилая часть')) return 'residential';
             if (p.includes('подземная часть')) return 'parking';
+            if (p.includes('противодым') || p.includes('дымоудал') || p.includes('пдв') || p.includes('подпор')) return 'smoke';
             return 'other'; // прочие системы
         }
 
@@ -1164,6 +1190,7 @@
             systemsData.residential = [];
             systemsData.parking = [];
             systemsData.other = [];
+            systemsData.smoke = [];
 
             // Пропускаем заголовок если есть (проверяем, является ли третий столбец числом)
             const startRow = (data[0] && isNaN(cleanNumber(data[0][2]))) ? 1 : 0;
@@ -1200,7 +1227,7 @@
 
             // Показываем уведомление об успешной загрузке
             const totalLoaded = systemsData.rent.length + systemsData.residential.length +
-                               systemsData.parking.length + systemsData.other.length;
+                               systemsData.parking.length + systemsData.other.length + systemsData.smoke.length;
             if (totalLoaded > 0) {
                 console.log(`Загружено ${totalLoaded} систем из Excel`);
             }
@@ -1321,6 +1348,7 @@
             renderSectionContent('residential', 'residentialContent');
             renderSectionContent('parking', 'parkingContent');
             renderSectionContent('other', 'otherContent');
+            renderSectionContent('smoke', 'smokeContent');
         }
 
         // Обновление расхода при редактировании
@@ -1366,10 +1394,11 @@
             updateSectionStats('residential', 'residentialStats');
             updateSectionStats('parking', 'parkingStats');
             updateSectionStats('other', 'otherStats');
+            updateSectionStats('smoke', 'smokeStats');
 
             // Общие итоги
             const allSystems = [...systemsData.rent, ...systemsData.residential,
-                               ...systemsData.parking, ...systemsData.other];
+                               ...systemsData.parking, ...systemsData.other, ...systemsData.smoke];
             const totalCount = allSystems.length;
             const totalFlow = allSystems.reduce((sum, s) => sum + s.flow, 0);
             const totalPerimeter = allSystems.reduce((sum, s) => sum + (s.perimeter || 0), 0);
@@ -1424,7 +1453,8 @@
                 rent: getSectionVelocity('rent'),
                 residential: getSectionVelocity('residential'),
                 parking: getSectionVelocity('parking'),
-                other: getSectionVelocity('other')
+                other: getSectionVelocity('other'),
+                smoke: getSectionVelocity('smoke')
             };
             saveData();
         }
@@ -1439,6 +1469,7 @@
                 if (appData.ducts.velocities.residential) document.getElementById('velocityResidential').value = appData.ducts.velocities.residential;
                 if (appData.ducts.velocities.parking) document.getElementById('velocityParking').value = appData.ducts.velocities.parking;
                 if (appData.ducts.velocities.other) document.getElementById('velocityOther').value = appData.ducts.velocities.other;
+                if (appData.ducts.velocities.smoke) document.getElementById('velocitySmoke').value = appData.ducts.velocities.smoke;
             }
             renderAllTables();
             if (appData.ducts.systemsData) {
@@ -1452,7 +1483,8 @@
                 { key: 'rent', name: 'Транзиты (Аренда)' },
                 { key: 'residential', name: 'Жилая часть' },
                 { key: 'parking', name: 'Подземная часть' },
-                { key: 'other', name: 'Прочие системы' }
+                { key: 'other', name: 'Прочие системы' },
+                { key: 'smoke', name: 'Противодымная вентиляция' }
             ];
 
             const rows = [];
