@@ -1186,11 +1186,13 @@
             return floors * floorHeight;
         }
 
-        // Определение типа системы по названию: П/Пд → приток, В/Вд → вытяжка
+        // Определение типа системы по названию:
+        // Приток: ПД (подпор), П (приточка)
+        // Вытяжка: ДУ (дымоудаление), ВД (вытяжка дыма), В (вытяжка)
         function getSystemType(systemName) {
             const name = (systemName || '').trim().toUpperCase();
-            if (name.match(/^П/)) return 'supply';
-            if (name.match(/^В/)) return 'extract';
+            if (name.match(/^(ДУ|ВД|В)/)) return 'extract';
+            if (name.match(/^(ПД|П)/)) return 'supply';
             return 'supply';
         }
 
