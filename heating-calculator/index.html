@@ -1033,6 +1033,8 @@
         // Собирательный алгоритм: idealSide = √F, полный перебор a×b,
         // штраф за a=300 при idealSide>350, бонус для высот 400-600
         function getOptimalRectDuct(requiredAreaMm2) {
+            console.log("РАСЧЕТ ДЛЯ ПЛОЩАДИ:", requiredAreaMm2);
+            return { a: 999, b: 999 };
             const PREFERRED_HEIGHTS = [400, 500, 600];
             const candidates = [];
 
