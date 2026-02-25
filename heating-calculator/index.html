@@ -287,6 +287,36 @@
             color: #999;
         }
 
+        .nested-accordion .accordion-item {
+            border: 1px solid #e0e0e0;
+            margin-bottom: 4px;
+            border-radius: 6px !important;
+            overflow: hidden;
+        }
+
+        .nested-accordion .accordion-button {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            background: #f0f4ff;
+        }
+
+        .nested-accordion .accordion-button:not(.collapsed) {
+            background: #e0e8ff;
+            color: #333;
+            box-shadow: none;
+        }
+
+        .nested-accordion .accordion-body {
+            padding: 4px;
+        }
+
+        .nested-accordion .sub-badge {
+            font-size: 0.75rem;
+            padding: 1px 7px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+
         .main-container {
             max-width: 1000px;
         }
@@ -469,6 +499,11 @@
                         </div>
                     </div>
 
+                    <!-- Кнопка экспорта в Excel -->
+                    <button class="btn btn-success btn-sm mb-3" onclick="exportDuctsToExcel()">
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i>Экспорт в Excel
+                    </button>
+
                     <!-- Аккордеон секций -->
                     <div class="accordion" id="ductsAccordion">
 
@@ -484,28 +519,13 @@
                                 </button>
                                 <div class="velocity-inline" onclick="event.stopPropagation()">
                                     <label>v:</label>
-                                    <input type="number" class="section-velocity" id="velocityRent" value="6" min="1" max="15" step="0.5" data-section="rent">
+                                    <input type="number" class="section-velocity" id="velocityRent" value="5" min="1" max="15" step="0.5" data-section="rent">
                                     <span>м/с</span>
                                 </div>
                             </h2>
                             <div id="rentTransit" class="accordion-collapse collapse show" data-bs-parent="#ductsAccordion">
                                 <div class="accordion-body p-2">
-                                    <div class="table-responsive">
-                                        <table class="table table-sm table-hover systems-table mb-0" id="rentTable">
-                                            <thead>
-                                                <tr>
-                                                    <th>Система</th>
-                                                    <th>Назначение</th>
-                                                    <th>Расход, м³/ч</th>
-                                                    <th>Сечение (Размер/Ø)</th>
-                                                    <th>Периметр, м</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="rentTableBody">
-                                                <tr><td colspan="5" class="empty-section">Нет данных. Загрузите Excel файл.</td></tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    <div id="rentContent"></div>
                                 </div>
                             </div>
                         </div>
@@ -522,66 +542,36 @@
                                 </button>
                                 <div class="velocity-inline" onclick="event.stopPropagation()">
                                     <label>v:</label>
-                                    <input type="number" class="section-velocity" id="velocityResidential" value="6" min="1" max="15" step="0.5" data-section="residential">
+                                    <input type="number" class="section-velocity" id="velocityResidential" value="3" min="1" max="15" step="0.5" data-section="residential">
                                     <span>м/с</span>
                                 </div>
                             </h2>
                             <div id="residential" class="accordion-collapse collapse" data-bs-parent="#ductsAccordion">
                                 <div class="accordion-body p-2">
-                                    <div class="table-responsive">
-                                        <table class="table table-sm table-hover systems-table mb-0" id="residentialTable">
-                                            <thead>
-                                                <tr>
-                                                    <th>Система</th>
-                                                    <th>Назначение</th>
-                                                    <th>Расход, м³/ч</th>
-                                                    <th>Сечение (Размер/Ø)</th>
-                                                    <th>Периметр, м</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="residentialTableBody">
-                                                <tr><td colspan="5" class="empty-section">Нет данных. Загрузите Excel файл.</td></tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    <div id="residentialContent"></div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Секция 3: Автостоянка -->
+                        <!-- Секция 3: Подземная часть -->
                         <div class="accordion-item">
                             <h2 class="accordion-header d-flex align-items-center">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#parkingTransit">
                                     <i class="bi bi-car-front me-2"></i>
                                     <span class="accordion-header-stats">
-                                        <span>Автостоянка</span>
+                                        <span>Подземная часть</span>
                                         <span class="header-stat" id="parkingStats">Систем: 0 | Расход: 0 м³/ч</span>
                                     </span>
                                 </button>
                                 <div class="velocity-inline" onclick="event.stopPropagation()">
                                     <label>v:</label>
-                                    <input type="number" class="section-velocity" id="velocityParking" value="6" min="1" max="15" step="0.5" data-section="parking">
+                                    <input type="number" class="section-velocity" id="velocityParking" value="8" min="1" max="15" step="0.5" data-section="parking">
                                     <span>м/с</span>
                                 </div>
                             </h2>
                             <div id="parkingTransit" class="accordion-collapse collapse" data-bs-parent="#ductsAccordion">
                                 <div class="accordion-body p-2">
-                                    <div class="table-responsive">
-                                        <table class="table table-sm table-hover systems-table mb-0" id="parkingTable">
-                                            <thead>
-                                                <tr>
-                                                    <th>Система</th>
-                                                    <th>Назначение</th>
-                                                    <th>Расход, м³/ч</th>
-                                                    <th>Сечение (Размер/Ø)</th>
-                                                    <th>Периметр, м</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="parkingTableBody">
-                                                <tr><td colspan="5" class="empty-section">Нет данных. Загрузите Excel файл.</td></tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    <div id="parkingContent"></div>
                                 </div>
                             </div>
                         </div>
@@ -598,28 +588,13 @@
                                 </button>
                                 <div class="velocity-inline" onclick="event.stopPropagation()">
                                     <label>v:</label>
-                                    <input type="number" class="section-velocity" id="velocityOther" value="6" min="1" max="15" step="0.5" data-section="other">
+                                    <input type="number" class="section-velocity" id="velocityOther" value="3" min="1" max="15" step="0.5" data-section="other">
                                     <span>м/с</span>
                                 </div>
                             </h2>
                             <div id="otherSystems" class="accordion-collapse collapse" data-bs-parent="#ductsAccordion">
                                 <div class="accordion-body p-2">
-                                    <div class="table-responsive">
-                                        <table class="table table-sm table-hover systems-table mb-0" id="otherTable">
-                                            <thead>
-                                                <tr>
-                                                    <th>Система</th>
-                                                    <th>Назначение</th>
-                                                    <th>Расход, м³/ч</th>
-                                                    <th>Сечение (Размер/Ø)</th>
-                                                    <th>Периметр, м</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="otherTableBody">
-                                                <tr><td colspan="5" class="empty-section">Нет данных. Загрузите Excel файл.</td></tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    <div id="otherContent"></div>
                                 </div>
                             </div>
                         </div>
@@ -628,17 +603,25 @@
                     <!-- Общий итог -->
                     <div class="total-row mt-3">
                         <div class="row">
-                            <div class="col-4 text-center">
+                            <div class="col text-center">
                                 <small>Всего систем</small>
                                 <div class="fs-5" id="totalSystems">0</div>
                             </div>
-                            <div class="col-4 text-center">
+                            <div class="col text-center">
                                 <small>Общий расход</small>
                                 <div class="fs-5" id="totalFlow">0 м³/ч</div>
                             </div>
-                            <div class="col-4 text-center">
+                            <div class="col text-center">
                                 <small>Общий периметр</small>
                                 <div class="fs-5" id="totalSection">0 м</div>
+                            </div>
+                            <div class="col text-center">
+                                <small>Общая длина трасс</small>
+                                <div class="fs-5" id="totalRouteLength">0 м</div>
+                            </div>
+                            <div class="col text-center">
+                                <small>Общая площадь S</small>
+                                <div class="fs-5" id="totalSurface">0 м²</div>
                             </div>
                         </div>
                     </div>
@@ -1042,50 +1025,54 @@
                 parking: 'velocityParking',
                 other: 'velocityOther'
             };
-            return parseFloat(document.getElementById(velocityIds[section])?.value) || 6;
+            const defaults = { rent: 5, residential: 3, parking: 8, other: 3 };
+            return parseFloat(document.getElementById(velocityIds[section])?.value) || defaults[section] || 5;
         }
 
         // Стандартные стороны прямоугольных воздуховодов по ГОСТ/СНиП (мм)
         const STANDARD_RECT_SIDES = [150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 1000, 1200];
 
         // Подбор оптимальной пары сторон прямоугольного воздуховода
-        // Жёсткий фильтр: idealSide > 400 → не рассматриваем высоту ≤ 300
-        // Бонус -10 для высот [400, 500, 600, 800], ratio ≤ 3.5
+        // Фильтр: idealSide > 320 → исключаем ≤ 300, ratio ≤ 3, приоритет квадрату
         function getOptimalRectDuct(requiredAreaMm2) {
-            const PREFERRED_HEIGHTS = [400, 500, 600, 800];
+            const STANDARD_SIDES = STANDARD_RECT_SIDES;
             const candidates = [];
             const idealSide = Math.sqrt(requiredAreaMm2);
 
-            for (let a of STANDARD_RECT_SIDES) {
-                // ЖЕСТКИЙ ФИЛЬТР: Если расход огромный (idealSide > 400),
-                // вообще не рассматриваем высоту 300 и меньше.
-                if (idealSide > 400 && a <= 300) continue;
+            for (let a of STANDARD_SIDES) {
+                // 1. ИСКЛЮЧАЕМ 300, если требуемая сторона квадрата больше 320мм
+                // Это заставит систему переходить на 400 и выше заранее.
+                if (idealSide > 320 && a <= 300) continue;
 
-                for (let b of STANDARD_RECT_SIDES) {
+                for (let b of STANDARD_SIDES) {
                     const area = a * b;
                     if (area < requiredAreaMm2) continue;
 
                     const ratio = Math.max(a, b) / Math.min(a, b);
-                    if (ratio > 3.5) continue; // Не даем делать "щели" типа 300×4550
+                    if (ratio > 3) continue; // Жесткое ограничение 1:3
 
                     const excessFraction = (area - requiredAreaMm2) / requiredAreaMm2;
 
-                    // SCORE: чем меньше, тем лучше
-                    let bonus = 0;
-                    if (PREFERRED_HEIGHTS.includes(a)) bonus = -10; // Сильный приоритет нормальным высотам
+                    // НОВАЯ СИСТЕМА ОЦЕНКИ (SCORE):
+                    // Огромный приоритет за близость к квадрату
+                    const squarePriority = Math.pow(ratio, 2) * 10;
 
-                    const score = (ratio - 1) * 5 + (excessFraction * 2) + bonus;
+                    // Штраф за слишком маленькую высоту относительно идеала
+                    let heightPenalty = 0;
+                    if (a < idealSide * 0.8) heightPenalty = 20;
+
+                    const score = squarePriority + (excessFraction * 5) + heightPenalty;
+
                     candidates.push({ a, b, score });
                 }
             }
 
-            // Если ничего не нашли (бывает на гигантских расходах), берем максимум
             if (candidates.length === 0) {
-                const max = STANDARD_RECT_SIDES[STANDARD_RECT_SIDES.length - 1];
+                const max = STANDARD_SIDES[STANDARD_SIDES.length - 1];
                 return { a: max, b: max };
             }
 
-            // Сортировка: самый маленький score в начало
+            // Сортируем и берем самый "квадратный" и "высокий" вариант
             candidates.sort((x, y) => x.score - y.score);
             return candidates[0];
         }
@@ -1113,9 +1100,7 @@
                 // Прямоугольный воздуховод — подбор по СНиП
                 const requiredAreaM2 = L / (3600 * v); // м²
                 const requiredAreaMm2 = requiredAreaM2 * 1000000; // мм²
-                // const { a, b } = getOptimalRectDuct(requiredAreaMm2);
-                const a = 555;
-                const b = 666;
+                const { a, b } = getOptimalRectDuct(requiredAreaMm2);
                 const perimeter = (2 * (a + b) / 1000).toFixed(2); // м
                 const sectionArea = (a * b) / 1000000; // м²
                 return {
@@ -1140,7 +1125,7 @@
             const p = (purpose || '').toLowerCase();
             if (p.includes('аренда')) return 'rent';
             if (p.includes('жилая часть')) return 'residential';
-            if (p.includes('автостоянка')) return 'parking';
+            if (p.includes('подземная часть')) return 'parking';
             return 'other'; // прочие системы
         }
 
@@ -1203,6 +1188,7 @@
                     system,
                     purpose,
                     flow,
+                    startFloor: 1,
                     ...ductParams
                 });
             }
@@ -1220,16 +1206,27 @@
             }
         }
 
-        function renderTable(section, tableBodyId) {
-            const tbody = document.getElementById(tableBodyId);
-            const systems = systemsData[section];
+        function getRouteLength(startFloor) {
+            const totalFloors = parseInt(document.getElementById('buildingFloors').value) || 9;
+            const floorHeight = parseFloat(document.getElementById('floorHeight').value) || 3.0;
+            const floors = Math.max(1, totalFloors - startFloor + 1);
+            return floors * floorHeight;
+        }
 
-            if (systems.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-section">Нет данных. Загрузите Excel файл.</td></tr>';
-                return;
-            }
+        // Определение типа системы по названию: П/Пд → приток, В/Вд → вытяжка
+        function getSystemType(systemName) {
+            const name = (systemName || '').trim().toUpperCase();
+            if (name.match(/^П/)) return 'supply';
+            if (name.match(/^В/)) return 'extract';
+            return 'supply';
+        }
 
-            tbody.innerHTML = systems.map((s, idx) => `
+        function renderTableRows(systems, section) {
+            return systems.map(({ s, idx }) => {
+                const startFloor = s.startFloor || 1;
+                const routeLength = getRouteLength(startFloor);
+                const surfaceArea = s.perimeter * routeLength;
+                return `
                 <tr>
                     <td>${s.system}</td>
                     <td>${s.purpose}</td>
@@ -1242,15 +1239,88 @@
                     </td>
                     <td><strong>${s.sectionDisplay}</strong></td>
                     <td>${s.perimeter.toFixed(2)}</td>
-                </tr>
-            `).join('');
+                    <td>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="text-muted" style="font-size:0.75em; white-space:nowrap;">с</span>
+                            <input type="number" class="flow-input" style="width:50px;"
+                                value="${startFloor}"
+                                min="1"
+                                data-section="${section}"
+                                data-index="${idx}"
+                                onchange="updateStartFloor(this)">
+                            <span class="text-muted" style="font-size:0.75em; white-space:nowrap;">эт.</span>
+                            <strong>${routeLength.toFixed(1)}</strong>
+                        </div>
+                    </td>
+                    <td><strong>${surfaceArea.toFixed(2)}</strong></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function buildSubTable(rows, emptyMsg, count) {
+            if (count === 0) {
+                return `<div class="empty-section" style="padding:15px;">${emptyMsg}</div>`;
+            }
+            return `<div class="table-responsive">
+                <table class="table table-sm table-hover systems-table mb-0">
+                    <thead><tr>
+                        <th>Система</th><th>Назначение</th><th>Расход, м³/ч</th>
+                        <th>Сечение (Размер/Ø)</th><th>Периметр, м</th>
+                        <th>Длина трассы, м</th><th>S, м²</th>
+                    </tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>`;
+        }
+
+        function renderSectionContent(section, contentId) {
+            const container = document.getElementById(contentId);
+            const systems = systemsData[section];
+
+            const supply = systems.map((s, idx) => ({ s, idx })).filter(({ s }) => getSystemType(s.system) === 'supply');
+            const extract = systems.map((s, idx) => ({ s, idx })).filter(({ s }) => getSystemType(s.system) === 'extract');
+
+            const supplyRows = renderTableRows(supply, section);
+            const extractRows = renderTableRows(extract, section);
+            const emptySupply = systems.length === 0 ? 'Нет данных. Загрузите Excel файл.' : 'Приточные системы не найдены';
+            const emptyExtract = systems.length === 0 ? 'Нет данных. Загрузите Excel файл.' : 'Вытяжные системы не найдены';
+
+            container.innerHTML = `
+                <div class="accordion nested-accordion" id="${section}SubAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#${section}Supply">
+                                <i class="bi bi-arrow-down-circle me-1" style="color:#28a745;"></i> Приточные системы
+                                <span class="badge bg-success sub-badge">${supply.length}</span>
+                            </button>
+                        </h2>
+                        <div id="${section}Supply" class="accordion-collapse collapse show">
+                            <div class="accordion-body p-1">
+                                ${buildSubTable(supplyRows, emptySupply, supply.length)}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#${section}Extract">
+                                <i class="bi bi-arrow-up-circle me-1" style="color:#dc3545;"></i> Вытяжные системы
+                                <span class="badge bg-danger sub-badge">${extract.length}</span>
+                            </button>
+                        </h2>
+                        <div id="${section}Extract" class="accordion-collapse collapse show">
+                            <div class="accordion-body p-1">
+                                ${buildSubTable(extractRows, emptyExtract, extract.length)}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
         }
 
         function renderAllTables() {
-            renderTable('rent', 'rentTableBody');
-            renderTable('residential', 'residentialTableBody');
-            renderTable('parking', 'parkingTableBody');
-            renderTable('other', 'otherTableBody');
+            renderSectionContent('rent', 'rentContent');
+            renderSectionContent('residential', 'residentialContent');
+            renderSectionContent('parking', 'parkingContent');
+            renderSectionContent('other', 'otherContent');
         }
 
         // Обновление расхода при редактировании
@@ -1268,6 +1338,20 @@
             saveSystemsData();
         }
         window.updateFlow = updateFlow;
+
+        // Обновление стартового этажа
+        function updateStartFloor(input) {
+            const section = input.dataset.section;
+            const index = parseInt(input.dataset.index);
+            const newFloor = Math.max(1, parseInt(input.value) || 1);
+
+            systemsData[section][index].startFloor = newFloor;
+
+            renderAllTables();
+            updateAllStats();
+            saveSystemsData();
+        }
+        window.updateStartFloor = updateStartFloor;
 
         // Обновление статистики секций
         function updateSectionStats(section, statsId) {
@@ -1289,10 +1373,14 @@
             const totalCount = allSystems.length;
             const totalFlow = allSystems.reduce((sum, s) => sum + s.flow, 0);
             const totalPerimeter = allSystems.reduce((sum, s) => sum + (s.perimeter || 0), 0);
+            const totalRouteLen = allSystems.reduce((sum, s) => sum + getRouteLength(s.startFloor || 1), 0);
+            const totalSurface = allSystems.reduce((sum, s) => sum + (s.perimeter || 0) * getRouteLength(s.startFloor || 1), 0);
 
             document.getElementById('totalSystems').textContent = totalCount;
             document.getElementById('totalFlow').textContent = `${totalFlow.toLocaleString()} м³/ч`;
             document.getElementById('totalSection').textContent = `${totalPerimeter.toFixed(2)} м`;
+            document.getElementById('totalRouteLength').textContent = `${totalRouteLen.toFixed(1)} м`;
+            document.getElementById('totalSurface').textContent = `${totalSurface.toFixed(2)} м²`;
 
             // Сохраняем в appData для других вкладок
             appData.ducts.surface = totalPerimeter;
@@ -1320,6 +1408,16 @@
             });
         });
 
+        // Пересчет длин трасс при изменении этажности или высоты этажа
+        document.getElementById('buildingFloors').addEventListener('change', () => {
+            renderAllTables();
+            updateAllStats();
+        });
+        document.getElementById('floorHeight').addEventListener('change', () => {
+            renderAllTables();
+            updateAllStats();
+        });
+
         function saveSystemsData() {
             appData.ducts.systemsData = systemsData;
             appData.ducts.velocities = {
@@ -1342,10 +1440,85 @@
                 if (appData.ducts.velocities.parking) document.getElementById('velocityParking').value = appData.ducts.velocities.parking;
                 if (appData.ducts.velocities.other) document.getElementById('velocityOther').value = appData.ducts.velocities.other;
             }
+            renderAllTables();
             if (appData.ducts.systemsData) {
-                renderAllTables();
                 updateAllStats();
             }
+        }
+
+        // === ЭКСПОРТ ВОЗДУХОВОДОВ В EXCEL ===
+        function exportDuctsToExcel() {
+            const sections = [
+                { key: 'rent', name: 'Транзиты (Аренда)' },
+                { key: 'residential', name: 'Жилая часть' },
+                { key: 'parking', name: 'Подземная часть' },
+                { key: 'other', name: 'Прочие системы' }
+            ];
+
+            const rows = [];
+            let totalSystems = 0;
+            let totalFlow = 0;
+            let totalPerimeter = 0;
+            let totalRouteLen = 0;
+            let totalSurfaceExp = 0;
+
+            sections.forEach(section => {
+                const data = systemsData[section.key];
+                rows.push([section.name]);
+
+                if (data.length === 0) {
+                    rows.push(['Нет данных']);
+                } else {
+                    const supply = data.filter(item => getSystemType(item.system) === 'supply');
+                    const extract = data.filter(item => getSystemType(item.system) === 'extract');
+
+                    let sectionFlow = 0, sectionPerimeter = 0, sectionRouteLen = 0, sectionSurface = 0;
+
+                    [{ label: 'Приточные системы', items: supply }, { label: 'Вытяжные системы', items: extract }].forEach(group => {
+                        rows.push(['  ' + group.label + ' (' + group.items.length + ')']);
+                        rows.push(['Система', 'Назначение', 'Расход, м³/ч', 'Сечение (Размер/Ø)', 'Периметр, м', 'Длина трассы, м', 'S, м²']);
+                        if (group.items.length === 0) {
+                            rows.push(['Системы данного типа не найдены']);
+                        } else {
+                            group.items.forEach(item => {
+                                const routeLen = getRouteLength(item.startFloor || 1);
+                                const surface = item.perimeter * routeLen;
+                                rows.push([item.system, item.purpose, item.flow, item.sectionDisplay,
+                                    parseFloat(item.perimeter.toFixed(2)), parseFloat(routeLen.toFixed(1)), parseFloat(surface.toFixed(2))]);
+                                sectionFlow += item.flow; sectionPerimeter += item.perimeter;
+                                sectionRouteLen += routeLen; sectionSurface += surface;
+                            });
+                        }
+                    });
+
+                    rows.push(['Итого:', '', sectionFlow, 'Систем: ' + data.length, parseFloat(sectionPerimeter.toFixed(2)), parseFloat(sectionRouteLen.toFixed(1)), parseFloat(sectionSurface.toFixed(2))]);
+                    totalSystems += data.length; totalFlow += sectionFlow;
+                    totalPerimeter += sectionPerimeter; totalRouteLen += sectionRouteLen;
+                    totalSurfaceExp += sectionSurface;
+                }
+                rows.push([]);
+            });
+
+            // Общий итог
+            rows.push(['ИТОГО ПО ВСЕМ СЕКЦИЯМ']);
+            rows.push(['Всего систем: ' + totalSystems, '', 'Общий расход: ' + totalFlow + ' м³/ч', '', 'Общий периметр: ' + totalPerimeter.toFixed(2) + ' м', 'Общая длина: ' + totalRouteLen.toFixed(1) + ' м', 'Общая S: ' + totalSurfaceExp.toFixed(2) + ' м²']);
+
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // Ширина колонок
+            ws['!cols'] = [
+                { wch: 18 },
+                { wch: 20 },
+                { wch: 15 },
+                { wch: 20 },
+                { wch: 15 },
+                { wch: 18 },
+                { wch: 12 }
+            ];
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Воздуховоды');
+            XLSX.writeFile(wb, 'Воздуховоды.xlsx');
         }
 
         // === АРМАТУРА ===
