@@ -1145,6 +1145,7 @@
             systemsData.smoke = [];
             // Сброс сводных таблиц арматуры для пересчёта
             appData.fittings.zonePivots = null;
+            appData.fittings.mopNontypicalPivot = null;
             appData.fittings.smokePivot = null;
 
             // Пропускаем заголовок если есть (проверяем, является ли третий столбец числом)
@@ -1345,7 +1346,7 @@
             renderSectionContent('other', 'otherContent');
             renderSectionContent('smoke', 'smokeContent');
             if (document.getElementById('fittingsAccordion') &&
-                (!appData.fittings.zonePivots || !appData.fittings.smokePivot)) {
+                (!appData.fittings.zonePivots || !appData.fittings.smokePivot || !appData.fittings.mopNontypicalPivot)) {
                 renderFittingsTab();
             }
         }
@@ -1701,6 +1702,14 @@
             return 'apartments';
         }
 
+        // Вычисление суммарных итогов по МОП: (типовой * этажи) + нетиповой
+        function calcMopTotal() {
+            const mopFloors = appData.fittings.mopFloors || 1;
+            const tTyp = calcPivotTotal((appData.fittings.zonePivots || {}).mop || {}, GENERAL_ROWS, mopFloors);
+            const tNon = calcPivotTotal(appData.fittings.mopNontypicalPivot || {}, GENERAL_ROWS);
+            return { count: tTyp.count + tNon.count, area: tTyp.area + tNon.area };
+        }
+
         function renderFittingsTab() {
             const accordion = document.getElementById('fittingsAccordion');
             if (!accordion) return;
@@ -1736,22 +1745,32 @@
                     appData.fittings.zonePivots[z.key] = computeFittingsPivot(z.items, GENERAL_ROWS);
                 });
             }
+            // Нетиповой МОП (пустая таблица по умолчанию)
+            if (!appData.fittings.mopNontypicalPivot) {
+                appData.fittings.mopNontypicalPivot = computeFittingsPivot([], GENERAL_ROWS);
+            }
             if (!appData.fittings.smokePivot) {
                 appData.fittings.smokePivot = computeFittingsPivot(smokeSystems, SMOKE_ROWS);
             }
 
-            // Количество квартир (множитель для зоны apartments)
+            // Множители
             const aptCount = appData.fittings.aptCount || 1;
+            const mopFloors = appData.fittings.mopFloors || 1;
 
             // Итоги по зонам и общий итог общеобменной
             let generalCount = 0, generalArea = 0;
             const zoneTotals = {};
             zones.forEach(z => {
-                const mul = z.key === 'apartments' ? aptCount : 1;
-                const t = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS, mul);
-                zoneTotals[z.key] = t;
-                generalCount += t.count;
-                generalArea += t.area;
+                if (z.key === 'apartments') {
+                    const t = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS, aptCount);
+                    zoneTotals[z.key] = t;
+                } else if (z.key === 'mop') {
+                    zoneTotals[z.key] = calcMopTotal();
+                } else {
+                    zoneTotals[z.key] = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS);
+                }
+                generalCount += zoneTotals[z.key].count;
+                generalArea += zoneTotals[z.key].area;
             });
             const sTotal = calcPivotTotal(appData.fittings.smokePivot, SMOKE_ROWS);
 
@@ -1777,7 +1796,7 @@
             // Вложенные зоны со сводными таблицами
             zones.forEach((zone, zi) => {
                 const zt = zoneTotals[zone.key];
-                const mul = zone.key === 'apartments' ? aptCount : 1;
+
                 html += `<div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button ${zi > 0 ? 'collapsed' : ''}" type="button"
@@ -1792,7 +1811,9 @@
                     <div id="fittingZone_${zone.key}" class="accordion-collapse collapse ${zi === 0 ? 'show' : ''}"
                         data-bs-parent="#fittingsGeneralInner">
                         <div class="accordion-body p-2">`;
+
                 if (zone.key === 'apartments') {
+                    // --- Квартиры: множитель + таблица ---
                     html += `<div class="d-flex align-items-center mb-2">
                         <label class="me-2 fw-bold" style="font-size:0.85rem;">Количество квартир:</label>
                         <input type="number" class="form-control form-control-sm" id="aptCountInput"
@@ -1800,9 +1821,70 @@
                             oninput="updateAptCount(this)">
                         <small class="text-muted ms-2" style="font-size:0.78rem;">значения в ячейках — на 1 квартиру</small>
                     </div>`;
-                }
-                html += `${buildPivotTable(appData.fittings.zonePivots[zone.key] || {}, GENERAL_ROWS, zone.key, mul)}
+                    html += buildPivotTable(appData.fittings.zonePivots.apartments || {}, GENERAL_ROWS, 'apartments', aptCount);
+
+                } else if (zone.key === 'mop') {
+                    // --- МОП: два вложенных под-аккордеона ---
+                    const tTyp = calcPivotTotal(appData.fittings.zonePivots.mop || {}, GENERAL_ROWS, mopFloors);
+                    const tNon = calcPivotTotal(appData.fittings.mopNontypicalPivot || {}, GENERAL_ROWS);
+
+                    html += `<div class="accordion" id="fittingsMopInner">`;
+
+                    // Типовой этаж
+                    html += `<div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#fittingMopTypical">
+                                <i class="bi bi-layers me-2"></i>
+                                <span>Типовой этаж</span>
+                                <span class="badge bg-info ms-2" id="fittingMopBadge_typical">${tTyp.count}</span>
+                                <span class="ms-auto me-3 text-muted" style="font-size:0.85rem;"
+                                    id="fittingMopArea_typical">S = ${tTyp.area.toFixed(2)} м\u00b2</span>
+                            </button>
+                        </h2>
+                        <div id="fittingMopTypical" class="accordion-collapse collapse show"
+                            data-bs-parent="#fittingsMopInner">
+                            <div class="accordion-body p-2">
+                                <div class="d-flex align-items-center mb-2">
+                                    <label class="me-2 fw-bold" style="font-size:0.85rem;">Количество типовых этажей:</label>
+                                    <input type="number" class="form-control form-control-sm" id="mopTypicalFloors"
+                                        value="${mopFloors}" min="1" style="width:90px;"
+                                        oninput="updateMopFloors(this)">
+                                    <small class="text-muted ms-2" style="font-size:0.78rem;">значения в ячейках — на 1 этаж</small>
+                                </div>
+                                ${buildPivotTable(appData.fittings.zonePivots.mop || {}, GENERAL_ROWS, 'mop', mopFloors)}
+                            </div>
                         </div>
+                    </div>`;
+
+                    // Нетиповой этаж
+                    html += `<div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#fittingMopNontypical">
+                                <i class="bi bi-bricks me-2"></i>
+                                <span>Нетиповой этаж</span>
+                                <span class="badge bg-info ms-2" id="fittingMopBadge_nontypical">${tNon.count}</span>
+                                <span class="ms-auto me-3 text-muted" style="font-size:0.85rem;"
+                                    id="fittingMopArea_nontypical">S = ${tNon.area.toFixed(2)} м\u00b2</span>
+                            </button>
+                        </h2>
+                        <div id="fittingMopNontypical" class="accordion-collapse collapse"
+                            data-bs-parent="#fittingsMopInner">
+                            <div class="accordion-body p-2">
+                                ${buildPivotTable(appData.fittings.mopNontypicalPivot || {}, GENERAL_ROWS, 'mopNontypical')}
+                            </div>
+                        </div>
+                    </div>`;
+
+                    html += `</div>`; // закрытие fittingsMopInner
+
+                } else {
+                    // --- Зона аренды: простая таблица ---
+                    html += buildPivotTable(appData.fittings.zonePivots[zone.key] || {}, GENERAL_ROWS, zone.key);
+                }
+
+                html += `</div>
                     </div>
                 </div>`;
             });
@@ -1837,8 +1919,65 @@
             return appData.fittings.aptCount || 1;
         }
 
+        function getMopMultiplier() {
+            return appData.fittings.mopFloors || 1;
+        }
+
+        // Получить множитель для группы
+        function getGroupMultiplier(group) {
+            if (group === 'apartments') return getAptMultiplier();
+            if (group === 'mop') return getMopMultiplier();
+            return 1;
+        }
+
+        // Обновить заголовки МОП (под-аккордеоны + общий)
+        function refreshMopHeaders() {
+            const mopFloors = getMopMultiplier();
+            const tTyp = calcPivotTotal((appData.fittings.zonePivots || {}).mop || {}, GENERAL_ROWS, mopFloors);
+            const tNon = calcPivotTotal(appData.fittings.mopNontypicalPivot || {}, GENERAL_ROWS);
+
+            const bTyp = document.getElementById('fittingMopBadge_typical');
+            if (bTyp) bTyp.textContent = tTyp.count;
+            const aTyp = document.getElementById('fittingMopArea_typical');
+            if (aTyp) aTyp.textContent = `S = ${tTyp.area.toFixed(2)} м\u00b2`;
+
+            const bNon = document.getElementById('fittingMopBadge_nontypical');
+            if (bNon) bNon.textContent = tNon.count;
+            const aNon = document.getElementById('fittingMopArea_nontypical');
+            if (aNon) aNon.textContent = `S = ${tNon.area.toFixed(2)} м\u00b2`;
+
+            // Общий заголовок зоны МОП
+            const mopTotal = { count: tTyp.count + tNon.count, area: tTyp.area + tNon.area };
+            const zb = document.getElementById('fittingZoneBadge_mop');
+            if (zb) zb.textContent = mopTotal.count;
+            const za = document.getElementById('fittingZoneArea_mop');
+            if (za) za.textContent = `S = ${mopTotal.area.toFixed(2)} м\u00b2`;
+        }
+
+        // Обновить заголовок Общеобменной (сумма всех зон)
+        function refreshGeneralHeader() {
+            let gCount = 0, gArea = 0;
+
+            // Квартиры
+            const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier());
+            gCount += tApt.count; gArea += tApt.area;
+
+            // МОП (типовой + нетиповой)
+            const tMop = calcMopTotal();
+            gCount += tMop.count; gArea += tMop.area;
+
+            // Аренда
+            const tRent = calcPivotTotal((appData.fittings.zonePivots || {}).rent || {}, GENERAL_ROWS);
+            gCount += tRent.count; gArea += tRent.area;
+
+            const gb = document.getElementById('fittingGroupBadge_general');
+            if (gb) gb.textContent = gCount;
+            const ga = document.getElementById('fittingGroupArea_general');
+            if (ga) ga.textContent = `\u03a3 S = ${gArea.toFixed(2)} м\u00b2`;
+        }
+
         function updatePivotCell(input) {
-            const group = input.dataset.group; // 'apartments', 'mop', 'rent' или 'smoke'
+            const group = input.dataset.group; // 'apartments', 'mop', 'mopNontypical', 'rent' или 'smoke'
             const row = input.dataset.row;
             const col = input.dataset.col;
             const val = Math.max(0, parseInt(input.value) || 0);
@@ -1848,6 +1987,10 @@
                 if (!appData.fittings.smokePivot) appData.fittings.smokePivot = {};
                 if (!appData.fittings.smokePivot[row]) appData.fittings.smokePivot[row] = {};
                 appData.fittings.smokePivot[row][col] = val;
+            } else if (group === 'mopNontypical') {
+                if (!appData.fittings.mopNontypicalPivot) appData.fittings.mopNontypicalPivot = {};
+                if (!appData.fittings.mopNontypicalPivot[row]) appData.fittings.mopNontypicalPivot[row] = {};
+                appData.fittings.mopNontypicalPivot[row][col] = val;
             } else {
                 if (!appData.fittings.zonePivots) appData.fittings.zonePivots = {};
                 if (!appData.fittings.zonePivots[group]) appData.fittings.zonePivots[group] = {};
@@ -1855,10 +1998,14 @@
                 appData.fittings.zonePivots[group][row][col] = val;
             }
 
-            const mul = group === 'apartments' ? getAptMultiplier() : 1;
+            const mul = getGroupMultiplier(group);
 
             // Обновить ИТОГО по строке
-            const pivot = group === 'smoke' ? appData.fittings.smokePivot : appData.fittings.zonePivots[group];
+            let pivot;
+            if (group === 'smoke') pivot = appData.fittings.smokePivot;
+            else if (group === 'mopNontypical') pivot = appData.fittings.mopNontypicalPivot;
+            else pivot = appData.fittings.zonePivots[group];
+
             let rowTotal = 0;
             SIZE_GROUPS.forEach(sg => {
                 rowTotal += (pivot[row] && pivot[row][sg.key]) || 0;
@@ -1866,10 +2013,15 @@
             const totalCell = document.querySelector(`.pivot-row-total[data-group="${group}"][data-row="${row}"]`);
             if (totalCell) totalCell.textContent = rowTotal * mul;
 
-            // Обновить подсказку для ячейки (для квартир)
-            if (group === 'apartments' && mul > 1) {
-                const hint = document.querySelector(`.apt-hint[data-row="${row}"][data-col="${col}"]`);
-                if (hint) hint.textContent = `(Всего: ${val * mul})`;
+            // Обновить подсказку (для групп с множителем > 1)
+            if (mul > 1) {
+                const hint = document.querySelector(`small.apt-hint[data-row="${row}"][data-col="${col}"]`);
+                if (hint && hint.closest(`[data-group="${group}"]`) ||
+                    input.closest('.fittings-table-wrap')) {
+                    // Ищем hint рядом с input
+                    const hintEl = input.parentElement.querySelector(`.apt-hint[data-row="${row}"][data-col="${col}"]`);
+                    if (hintEl) hintEl.textContent = `(Всего: ${val * mul})`;
+                }
             }
 
             if (group === 'smoke') {
@@ -1879,26 +2031,19 @@
                 if (sb) sb.textContent = st.count;
                 const sa = document.getElementById('fittingGroupArea_smoke');
                 if (sa) sa.textContent = `\u03a3 S = ${st.area.toFixed(2)} м\u00b2`;
+            } else if (group === 'mop' || group === 'mopNontypical') {
+                // Обновить заголовки МОП
+                refreshMopHeaders();
+                refreshGeneralHeader();
             } else {
-                // Обновить заголовок зоны (с множителем для квартир)
+                // apartments или rent
                 const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS, mul);
                 const zb = document.getElementById(`fittingZoneBadge_${group}`);
                 if (zb) zb.textContent = zt.count;
                 const za = document.getElementById(`fittingZoneArea_${group}`);
                 if (za) za.textContent = `S = ${zt.area.toFixed(2)} м\u00b2`;
 
-                // Обновить заголовок Общеобменной (сумма всех зон)
-                let gCount = 0, gArea = 0;
-                ['apartments', 'mop', 'rent'].forEach(zk => {
-                    const m = zk === 'apartments' ? getAptMultiplier() : 1;
-                    const t = calcPivotTotal((appData.fittings.zonePivots || {})[zk] || {}, GENERAL_ROWS, m);
-                    gCount += t.count;
-                    gArea += t.area;
-                });
-                const gb = document.getElementById('fittingGroupBadge_general');
-                if (gb) gb.textContent = gCount;
-                const ga = document.getElementById('fittingGroupArea_general');
-                if (ga) ga.textContent = `\u03a3 S = ${gArea.toFixed(2)} м\u00b2`;
+                refreshGeneralHeader();
             }
 
             updateFittingsTotals();
@@ -1909,20 +2054,34 @@
         function updateAptCount(input) {
             const val = Math.max(1, parseInt(input.value) || 1);
             appData.fittings.aptCount = val;
-            // Перерисовать всю вкладку, чтобы обновить подсказки и итоги
             renderFittingsTab();
             saveData();
         }
         window.updateAptCount = updateAptCount;
 
+        function updateMopFloors(input) {
+            const val = Math.max(1, parseInt(input.value) || 1);
+            appData.fittings.mopFloors = val;
+            renderFittingsTab();
+            saveData();
+        }
+        window.updateMopFloors = updateMopFloors;
+
         function updateFittingsTotals() {
             let gCount = 0, gArea = 0;
-            ['apartments', 'mop', 'rent'].forEach(zk => {
-                const m = zk === 'apartments' ? getAptMultiplier() : 1;
-                const t = calcPivotTotal((appData.fittings.zonePivots || {})[zk] || {}, GENERAL_ROWS, m);
-                gCount += t.count;
-                gArea += t.area;
-            });
+
+            // Квартиры
+            const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier());
+            gCount += tApt.count; gArea += tApt.area;
+
+            // МОП (типовой * этажи + нетиповой)
+            const tMop = calcMopTotal();
+            gCount += tMop.count; gArea += tMop.area;
+
+            // Аренда
+            const tRent = calcPivotTotal((appData.fittings.zonePivots || {}).rent || {}, GENERAL_ROWS);
+            gCount += tRent.count; gArea += tRent.area;
+
             const sTotal = calcPivotTotal(appData.fittings.smokePivot || {}, SMOKE_ROWS);
 
             const totalCount = gCount + sTotal.count;
