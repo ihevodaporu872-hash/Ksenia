@@ -1578,7 +1578,11 @@
             return 'apartments';
         }
 
-        // Автоподбор арматуры по умолчанию при загрузке Excel
+        function isSmokeSystem(systemName) {
+            const name = (systemName || '').trim().toUpperCase();
+            return !!name.match(/^(ДУ|ВД|ПД)/);
+        }
+
         function getDefaultFittings(system) {
             const name = (system.system || '').trim().toUpperCase();
             const purpose = (system.purpose || '').toLowerCase();
@@ -1606,7 +1610,6 @@
 
         function calcSystemFittingArea(system) {
             const perimeter = system.perimeter || 0;
-            // Площадь одного элемента арматуры ≈ периметр × 0.3м (длина фасонки)
             const unitArea = perimeter * 0.3;
             const items = (appData.fittings.items || {})[system.system] || {};
             let total = 0;
@@ -1623,6 +1626,41 @@
             }
         }
 
+        function buildFittingsTable(systems) {
+            if (systems.length === 0) {
+                return '<div class="text-muted text-center py-3">Нет систем</div>';
+            }
+            let html = `<div class="fittings-table-wrap">
+                <table class="table table-sm table-bordered mb-0" style="font-size:0.82rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width:90px;">Система</th>
+                            <th style="min-width:100px;">Сечение</th>`;
+            FITTING_TYPES.forEach(ft => {
+                html += `<th title="${ft.fullName}" style="min-width:70px;">${ft.name}</th>`;
+            });
+            html += `<th style="min-width:80px;">Итого S, м\u00b2</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            systems.forEach(s => {
+                const items = appData.fittings.items[s.system] || {};
+                const area = calcSystemFittingArea(s);
+                html += `<tr>
+                    <td>${s.system}</td>
+                    <td>${s.sectionDisplay || '\u2014'}</td>`;
+                FITTING_TYPES.forEach(ft => {
+                    html += `<td><input type="number" class="form-control form-control-sm"
+                        value="${items[ft.key] || 0}" min="0"
+                        data-system="${s.system}" data-type="${ft.key}"
+                        oninput="updateFitting(this)" style="width:60px;"></td>`;
+                });
+                html += `<td class="fitting-sys-area" data-system="${s.system}">${area.toFixed(2)}</td></tr>`;
+            });
+            html += '</tbody></table></div>';
+            return html;
+        }
+
         function renderFittingsTab() {
             const accordion = document.getElementById('fittingsAccordion');
             if (!accordion) return;
@@ -1634,22 +1672,51 @@
                 systemsData[section].forEach(s => allSystems.push(s));
             });
 
-            // Проставляем дефолтные значения для новых систем
             allSystems.forEach(s => ensureFittingDefaults(s));
 
+            // Разделяем на общеобменные и противодымные
+            const generalSystems = [];
+            const smokeSystems = [];
+            allSystems.forEach(s => {
+                if (isSmokeSystem(s.system)) smokeSystems.push(s);
+                else generalSystems.push(s);
+            });
+
+            // Общеобменные по зонам
             const zones = [
                 { key: 'apartments', name: 'В квартирах', icon: 'bi-house-door', items: [] },
                 { key: 'mop', name: 'В МОП', icon: 'bi-door-open', items: [] },
                 { key: 'rent', name: 'В зоне аренды', icon: 'bi-shop', items: [] }
             ];
-
-            allSystems.forEach(s => {
+            generalSystems.forEach(s => {
                 const zoneKey = getFittingZone(s.purpose);
                 const zone = zones.find(z => z.key === zoneKey);
                 if (zone) zone.items.push(s);
             });
 
+            const generalArea = generalSystems.reduce((sum, s) => sum + calcSystemFittingArea(s), 0);
+            const smokeArea = smokeSystems.reduce((sum, s) => sum + calcSystemFittingArea(s), 0);
+
             let html = '';
+
+            // === Верхний уровень: Общеобменная вентиляция ===
+            html += `<div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#fittingGroupGeneral">
+                        <i class="bi bi-wind me-2"></i>
+                        <span>Общеобменная вентиляция</span>
+                        <span class="badge bg-primary ms-2">${generalSystems.length}</span>
+                        <span class="ms-auto me-3 text-muted" style="font-size:0.85rem;"
+                            id="fittingGroupArea_general">\u03a3 S = ${generalArea.toFixed(2)} м\u00b2</span>
+                    </button>
+                </h2>
+                <div id="fittingGroupGeneral" class="accordion-collapse collapse show"
+                    data-bs-parent="#fittingsAccordion">
+                    <div class="accordion-body p-2">
+                        <div class="accordion" id="fittingsGeneralInner">`;
+
+            // Вложенные зоны
             zones.forEach((zone, zi) => {
                 const count = zone.items.length;
                 const zoneArea = zone.items.reduce((sum, s) => sum + calcSystemFittingArea(s), 0);
@@ -1666,45 +1733,35 @@
                         </button>
                     </h2>
                     <div id="fittingZone${zone.key}" class="accordion-collapse collapse ${zi === 0 ? 'show' : ''}"
-                        data-bs-parent="#fittingsAccordion">
-                        <div class="accordion-body p-2">`;
-
-                if (count === 0) {
-                    html += '<div class="text-muted text-center py-3">Нет систем в данной зоне</div>';
-                } else {
-                    html += `<div class="fittings-table-wrap">
-                        <table class="table table-sm table-bordered mb-0" style="font-size:0.82rem;">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="min-width:90px;">Система</th>
-                                    <th style="min-width:100px;">Сечение</th>`;
-                    FITTING_TYPES.forEach(ft => {
-                        html += `<th title="${ft.fullName}" style="min-width:70px;">${ft.name}</th>`;
-                    });
-                    html += `<th style="min-width:80px;">Итого S, м\u00b2</th>
-                                </tr>
-                            </thead>
-                            <tbody>`;
-
-                    zone.items.forEach(s => {
-                        const items = appData.fittings.items[s.system] || {};
-                        const area = calcSystemFittingArea(s);
-                        html += `<tr>
-                            <td>${s.system}</td>
-                            <td>${s.sectionDisplay || '\u2014'}</td>`;
-                        FITTING_TYPES.forEach(ft => {
-                            html += `<td><input type="number" class="form-control form-control-sm"
-                                value="${items[ft.key] || 0}" min="0"
-                                data-system="${s.system}" data-type="${ft.key}"
-                                oninput="updateFitting(this)" style="width:60px;"></td>`;
-                        });
-                        html += `<td class="fitting-sys-area" data-system="${s.system}">${area.toFixed(2)}</td></tr>`;
-                    });
-
-                    html += '</tbody></table></div>';
-                }
-                html += '</div></div></div>';
+                        data-bs-parent="#fittingsGeneralInner">
+                        <div class="accordion-body p-2">
+                            ${buildFittingsTable(zone.items)}
+                        </div>
+                    </div>
+                </div>`;
             });
+
+            html += `</div></div></div></div>`;
+
+            // === Верхний уровень: Противодымная вентиляция ===
+            html += `<div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#fittingGroupSmoke">
+                        <i class="bi bi-shield-exclamation me-2"></i>
+                        <span>Противодымная вентиляция</span>
+                        <span class="badge bg-danger ms-2">${smokeSystems.length}</span>
+                        <span class="ms-auto me-3 text-muted" style="font-size:0.85rem;"
+                            id="fittingGroupArea_smoke">\u03a3 S = ${smokeArea.toFixed(2)} м\u00b2</span>
+                    </button>
+                </h2>
+                <div id="fittingGroupSmoke" class="accordion-collapse collapse"
+                    data-bs-parent="#fittingsAccordion">
+                    <div class="accordion-body p-2">
+                        ${buildFittingsTable(smokeSystems)}
+                    </div>
+                </div>
+            </div>`;
 
             accordion.innerHTML = html;
             updateFittingsTotals();
@@ -1719,7 +1776,7 @@
             if (!appData.fittings.items[systemName]) appData.fittings.items[systemName] = {};
             appData.fittings.items[systemName][type] = val;
 
-            // Найти систему и пересчитать площадь
+            // Обновить площадь строки
             let sys = null;
             ['rent', 'residential', 'parking', 'other', 'smoke'].forEach(section => {
                 const found = systemsData[section].find(s => s.system === systemName);
@@ -1733,24 +1790,43 @@
                 });
             }
 
-            // Обновить итоги по зонам в заголовках
+            // Пересчитать все итоги (зоны, группы, общие)
+            const allSystems = [];
+            ['rent', 'residential', 'parking', 'other', 'smoke'].forEach(section => {
+                systemsData[section].forEach(s => allSystems.push(s));
+            });
+
+            const generalSystems = [];
+            const smokeSystems = [];
+            allSystems.forEach(s => {
+                if (isSmokeSystem(s.system)) smokeSystems.push(s);
+                else generalSystems.push(s);
+            });
+
+            // Итоги по зонам
             const zones = [
                 { key: 'apartments', items: [] },
                 { key: 'mop', items: [] },
                 { key: 'rent', items: [] }
             ];
-            ['rent', 'residential', 'parking', 'other', 'smoke'].forEach(section => {
-                systemsData[section].forEach(s => {
-                    const zoneKey = getFittingZone(s.purpose);
-                    const zone = zones.find(z => z.key === zoneKey);
-                    if (zone) zone.items.push(s);
-                });
+            generalSystems.forEach(s => {
+                const zoneKey = getFittingZone(s.purpose);
+                const zone = zones.find(z => z.key === zoneKey);
+                if (zone) zone.items.push(s);
             });
             zones.forEach(zone => {
                 const zoneArea = zone.items.reduce((sum, s) => sum + calcSystemFittingArea(s), 0);
                 const el = document.getElementById(`fittingZoneArea_${zone.key}`);
                 if (el) el.textContent = `S = ${zoneArea.toFixed(2)} м\u00b2`;
             });
+
+            // Итоги по группам верхнего уровня
+            const generalArea = generalSystems.reduce((sum, s) => sum + calcSystemFittingArea(s), 0);
+            const smokeArea = smokeSystems.reduce((sum, s) => sum + calcSystemFittingArea(s), 0);
+            const genEl = document.getElementById('fittingGroupArea_general');
+            if (genEl) genEl.textContent = `\u03a3 S = ${generalArea.toFixed(2)} м\u00b2`;
+            const smokeEl = document.getElementById('fittingGroupArea_smoke');
+            if (smokeEl) smokeEl.textContent = `\u03a3 S = ${smokeArea.toFixed(2)} м\u00b2`;
 
             updateFittingsTotals();
             saveData();
