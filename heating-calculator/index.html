@@ -1144,7 +1144,7 @@
             systemsData.other = [];
             systemsData.smoke = [];
             // Сброс сводных таблиц арматуры для пересчёта
-            appData.fittings.generalPivot = null;
+            appData.fittings.zonePivots = null;
             appData.fittings.smokePivot = null;
 
             // Пропускаем заголовок если есть (проверяем, является ли третий столбец числом)
@@ -1345,7 +1345,7 @@
             renderSectionContent('other', 'otherContent');
             renderSectionContent('smoke', 'smokeContent');
             if (document.getElementById('fittingsAccordion') &&
-                (!appData.fittings.generalPivot || !appData.fittings.smokePivot)) {
+                (!appData.fittings.zonePivots || !appData.fittings.smokePivot)) {
                 renderFittingsTab();
             }
         }
@@ -1686,6 +1686,14 @@
             return html;
         }
 
+        function getFittingZone(purpose) {
+            const p = (purpose || '').toLowerCase();
+            if (p.includes('жилье') || p.includes('кв') || p.includes('квартир')) return 'apartments';
+            if (p.includes('моп') || p.includes('коридор') || p.includes('лестн') || p.includes('холл')) return 'mop';
+            if (p.includes('аренда') || p.includes('офис') || p.includes('торг') || p.includes('транзит')) return 'rent';
+            return 'apartments';
+        }
+
         function renderFittingsTab() {
             const accordion = document.getElementById('fittingsAccordion');
             if (!accordion) return;
@@ -1702,15 +1710,38 @@
                 else generalSystems.push(s);
             });
 
-            // Вычисляем сводные таблицы, если не сохранены
-            if (!appData.fittings.generalPivot) {
-                appData.fittings.generalPivot = computeFittingsPivot(generalSystems, GENERAL_ROWS);
+            // Зоны общеобменной вентиляции
+            const zones = [
+                { key: 'apartments', name: 'В квартирах', icon: 'bi-house-door', items: [] },
+                { key: 'mop', name: 'В МОП', icon: 'bi-door-open', items: [] },
+                { key: 'rent', name: 'В зоне аренды', icon: 'bi-shop', items: [] }
+            ];
+            generalSystems.forEach(s => {
+                const zk = getFittingZone(s.purpose);
+                const zone = zones.find(z => z.key === zk);
+                if (zone) zone.items.push(s);
+            });
+
+            // Вычисляем сводные таблицы по зонам, если не сохранены
+            if (!appData.fittings.zonePivots) {
+                appData.fittings.zonePivots = {};
+                zones.forEach(z => {
+                    appData.fittings.zonePivots[z.key] = computeFittingsPivot(z.items, GENERAL_ROWS);
+                });
             }
             if (!appData.fittings.smokePivot) {
                 appData.fittings.smokePivot = computeFittingsPivot(smokeSystems, SMOKE_ROWS);
             }
 
-            const gTotal = calcPivotTotal(appData.fittings.generalPivot, GENERAL_ROWS);
+            // Итоги по зонам и общий итог общеобменной
+            let generalCount = 0, generalArea = 0;
+            const zoneTotals = {};
+            zones.forEach(z => {
+                const t = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS);
+                zoneTotals[z.key] = t;
+                generalCount += t.count;
+                generalArea += t.area;
+            });
             const sTotal = calcPivotTotal(appData.fittings.smokePivot, SMOKE_ROWS);
 
             let html = '';
@@ -1722,18 +1753,40 @@
                         data-bs-toggle="collapse" data-bs-target="#fittingGroupGeneral">
                         <i class="bi bi-wind me-2"></i>
                         <span>Общеобменная вентиляция</span>
-                        <span class="badge bg-primary ms-2" id="fittingGroupBadge_general">${gTotal.count}</span>
+                        <span class="badge bg-primary ms-2" id="fittingGroupBadge_general">${generalCount}</span>
                         <span class="ms-auto me-3 text-muted" style="font-size:0.85rem;"
-                            id="fittingGroupArea_general">\u03a3 S = ${gTotal.area.toFixed(2)} м\u00b2</span>
+                            id="fittingGroupArea_general">\u03a3 S = ${generalArea.toFixed(2)} м\u00b2</span>
                     </button>
                 </h2>
                 <div id="fittingGroupGeneral" class="accordion-collapse collapse show"
                     data-bs-parent="#fittingsAccordion">
                     <div class="accordion-body p-2">
-                        ${buildPivotTable(appData.fittings.generalPivot, GENERAL_ROWS, 'general')}
+                        <div class="accordion" id="fittingsGeneralInner">`;
+
+            // Вложенные зоны со сводными таблицами
+            zones.forEach((zone, zi) => {
+                const zt = zoneTotals[zone.key];
+                html += `<div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button ${zi > 0 ? 'collapsed' : ''}" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#fittingZone_${zone.key}">
+                            <i class="bi ${zone.icon} me-2"></i>
+                            <span>${zone.name}</span>
+                            <span class="badge bg-primary ms-2" id="fittingZoneBadge_${zone.key}">${zt.count}</span>
+                            <span class="ms-auto me-3 text-muted" style="font-size:0.85rem;"
+                                id="fittingZoneArea_${zone.key}">S = ${zt.area.toFixed(2)} м\u00b2</span>
+                        </button>
+                    </h2>
+                    <div id="fittingZone_${zone.key}" class="accordion-collapse collapse ${zi === 0 ? 'show' : ''}"
+                        data-bs-parent="#fittingsGeneralInner">
+                        <div class="accordion-body p-2">
+                            ${buildPivotTable(appData.fittings.zonePivots[zone.key] || {}, GENERAL_ROWS, zone.key)}
+                        </div>
                     </div>
-                </div>
-            </div>`;
+                </div>`;
+            });
+
+            html += `</div></div></div></div>`;
 
             // === Противодымная вентиляция ===
             html += `<div class="accordion-item">
@@ -1760,31 +1813,59 @@
         }
 
         function updatePivotCell(input) {
-            const group = input.dataset.group;
+            const group = input.dataset.group; // 'apartments', 'mop', 'rent' или 'smoke'
             const row = input.dataset.row;
             const col = input.dataset.col;
             const val = Math.max(0, parseInt(input.value) || 0);
 
-            const pivotKey = group === 'general' ? 'generalPivot' : 'smokePivot';
-            if (!appData.fittings[pivotKey]) appData.fittings[pivotKey] = {};
-            if (!appData.fittings[pivotKey][row]) appData.fittings[pivotKey][row] = {};
-            appData.fittings[pivotKey][row][col] = val;
+            // Обновить хранилище
+            if (group === 'smoke') {
+                if (!appData.fittings.smokePivot) appData.fittings.smokePivot = {};
+                if (!appData.fittings.smokePivot[row]) appData.fittings.smokePivot[row] = {};
+                appData.fittings.smokePivot[row][col] = val;
+            } else {
+                if (!appData.fittings.zonePivots) appData.fittings.zonePivots = {};
+                if (!appData.fittings.zonePivots[group]) appData.fittings.zonePivots[group] = {};
+                if (!appData.fittings.zonePivots[group][row]) appData.fittings.zonePivots[group][row] = {};
+                appData.fittings.zonePivots[group][row][col] = val;
+            }
 
             // Обновить ИТОГО по строке
+            const pivot = group === 'smoke' ? appData.fittings.smokePivot : appData.fittings.zonePivots[group];
             let rowTotal = 0;
             SIZE_GROUPS.forEach(sg => {
-                rowTotal += (appData.fittings[pivotKey][row][sg.key] || 0);
+                rowTotal += (pivot[row] && pivot[row][sg.key]) || 0;
             });
             const totalCell = document.querySelector(`.pivot-row-total[data-group="${group}"][data-row="${row}"]`);
             if (totalCell) totalCell.textContent = rowTotal;
 
-            // Обновить badge и Σ S в заголовке группы
-            const rows = group === 'general' ? GENERAL_ROWS : SMOKE_ROWS;
-            const totals = calcPivotTotal(appData.fittings[pivotKey], rows);
-            const badgeEl = document.getElementById(`fittingGroupBadge_${group}`);
-            if (badgeEl) badgeEl.textContent = totals.count;
-            const areaEl = document.getElementById(`fittingGroupArea_${group}`);
-            if (areaEl) areaEl.textContent = `\u03a3 S = ${totals.area.toFixed(2)} м\u00b2`;
+            if (group === 'smoke') {
+                // Обновить заголовок Противодымной
+                const st = calcPivotTotal(appData.fittings.smokePivot, SMOKE_ROWS);
+                const sb = document.getElementById('fittingGroupBadge_smoke');
+                if (sb) sb.textContent = st.count;
+                const sa = document.getElementById('fittingGroupArea_smoke');
+                if (sa) sa.textContent = `\u03a3 S = ${st.area.toFixed(2)} м\u00b2`;
+            } else {
+                // Обновить заголовок зоны
+                const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS);
+                const zb = document.getElementById(`fittingZoneBadge_${group}`);
+                if (zb) zb.textContent = zt.count;
+                const za = document.getElementById(`fittingZoneArea_${group}`);
+                if (za) za.textContent = `S = ${zt.area.toFixed(2)} м\u00b2`;
+
+                // Обновить заголовок Общеобменной (сумма всех зон)
+                let gCount = 0, gArea = 0;
+                ['apartments', 'mop', 'rent'].forEach(zk => {
+                    const t = calcPivotTotal((appData.fittings.zonePivots || {})[zk] || {}, GENERAL_ROWS);
+                    gCount += t.count;
+                    gArea += t.area;
+                });
+                const gb = document.getElementById('fittingGroupBadge_general');
+                if (gb) gb.textContent = gCount;
+                const ga = document.getElementById('fittingGroupArea_general');
+                if (ga) ga.textContent = `\u03a3 S = ${gArea.toFixed(2)} м\u00b2`;
+            }
 
             updateFittingsTotals();
             saveData();
@@ -1792,11 +1873,16 @@
         window.updatePivotCell = updatePivotCell;
 
         function updateFittingsTotals() {
-            const gTotal = calcPivotTotal(appData.fittings.generalPivot || {}, GENERAL_ROWS);
+            let gCount = 0, gArea = 0;
+            ['apartments', 'mop', 'rent'].forEach(zk => {
+                const t = calcPivotTotal((appData.fittings.zonePivots || {})[zk] || {}, GENERAL_ROWS);
+                gCount += t.count;
+                gArea += t.area;
+            });
             const sTotal = calcPivotTotal(appData.fittings.smokePivot || {}, SMOKE_ROWS);
 
-            const totalCount = gTotal.count + sTotal.count;
-            const totalArea = gTotal.area + sTotal.area;
+            const totalCount = gCount + sTotal.count;
+            const totalArea = gArea + sTotal.area;
 
             const thickness = parseFloat(document.getElementById('fittingSteelThickness').value) || 0.7;
             const totalWeight = totalArea * (thickness / 1000) * 7850;
