@@ -1913,6 +1913,11 @@
                     if (!aptP.no.d315) aptP.no.d315 = 1;
                 }
             }
+            // Аренда: всегда сбрасываем до нулей + НО = кол-во транзитных систем
+            // (защита от устаревших значений в localStorage)
+            appData.fittings.zonePivots.rent = computeFittingsPivot([], GENERAL_ROWS);
+            appData.fittings.zonePivots.rent.no.p1000 = systemsData.rent.length;
+
             // Нетиповой МОП (пустая таблица по умолчанию)
             if (!appData.fittings.mopNontypicalPivot) {
                 appData.fittings.mopNontypicalPivot = computeFittingsPivot([], GENERAL_ROWS);
