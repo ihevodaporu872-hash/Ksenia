@@ -1587,6 +1587,8 @@
             p3600: ['CAV-А 1200×500', 'CAV-А 1200×600']
         };
         const OPT_MODELS = { shg: SHG_MODELS, cav: CAV_MODELS };
+        const OPTIONAL_KEYS = ['shg', 'cav'];
+        const OPTIONAL_NAMES = { shg: 'Шумоглушитель', cav: 'Клапан CAV' };
 
         const SIZE_GROUPS = [
             { key: 'd315', name: 'до \u0414315', maxP: 0.99 },
@@ -1657,11 +1659,16 @@
             return pivot;
         }
 
-        function calcPivotTotal(pivot, rows, multiplier, sizeGroups) {
+        function isExtraVisible(group, rowKey) {
+            return ((appData.fittings.visibleExtras || {})[group] || []).includes(rowKey);
+        }
+
+        function calcPivotTotal(pivot, rows, multiplier, sizeGroups, group) {
             multiplier = multiplier || 1;
             sizeGroups = sizeGroups || SIZE_GROUPS;
             let count = 0, area = 0;
             rows.forEach(r => {
+                if (group && OPTIONAL_KEYS.includes(r.key) && !isExtraVisible(group, r.key)) return;
                 sizeGroups.forEach(sg => {
                     const val = (pivot[r.key] && pivot[r.key][sg.key]) || 0;
                     count += val;
@@ -1669,6 +1676,24 @@
                 });
             });
             return { count: count * multiplier, area: area * multiplier };
+        }
+
+        function buildExtraDropdown(group) {
+            const vis = (appData.fittings.visibleExtras || {})[group] || [];
+            const hidden = OPTIONAL_KEYS.filter(k => !vis.includes(k));
+            if (hidden.length === 0) return '';
+            let items = '';
+            hidden.forEach(k => {
+                items += `<li><a class="dropdown-item" href="#" onclick="showExtraRow('${group}','${k}');return false;">
+                    <i class="bi bi-plus-circle me-1 text-success"></i>${OPTIONAL_NAMES[k]}</a></li>`;
+            });
+            return `<div class="dropdown d-inline-block mt-2">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-plus-circle me-1"></i>Добавить доп. оборудование
+                </button>
+                <ul class="dropdown-menu">${items}</ul>
+            </div>`;
         }
 
         function buildPivotTable(pivot, rows, groupId, multiplier) {
@@ -1689,7 +1714,19 @@
 
             rows.forEach(r => {
                 let rowSum = 0;
-                html += `<tr><td><strong>${r.name}</strong></td>`;
+                const isOpt = OPTIONAL_KEYS.includes(r.key);
+                const isVis = !isOpt || isExtraVisible(groupId, r.key);
+
+                html += `<tr${isOpt ? ` data-extra-group="${groupId}" data-extra-key="${r.key}"` : ''}
+                    style="${isVis ? '' : 'display:none;'}">`;
+                html += `<td>`;
+                if (isOpt && isVis) {
+                    html += `<a href="#" class="text-danger me-1" style="font-size:0.85rem;"
+                        onclick="hideExtraRow('${groupId}','${r.key}');return false;"
+                        title="Скрыть строку"><i class="bi bi-x-circle"></i></a>`;
+                }
+                html += `<strong>${r.name}</strong></td>`;
+
                 SIZE_GROUPS.forEach(sg => {
                     const val = (pivot[r.key] && pivot[r.key][sg.key]) || 0;
                     rowSum += val;
@@ -1708,7 +1745,9 @@
                     data-group="${groupId}" data-row="${r.key}">${rowSum * multiplier}</td></tr>`;
             });
 
-            html += '</tbody></table></div>';
+            html += '</tbody></table>';
+            html += buildExtraDropdown(groupId);
+            html += '</div>';
             return html;
         }
 
@@ -1735,10 +1774,20 @@
             GENERAL_ROWS.forEach(r => {
                 let rowSum = 0;
                 const isBase = baseKeys.includes(r.key);
+                const isOpt = OPTIONAL_KEYS.includes(r.key);
+                const isVis = !isOpt || isExtraVisible('apartments', r.key);
 
-                html += `<tr><td><strong>${r.name}</strong>`;
+                html += `<tr${isOpt ? ` data-extra-group="apartments" data-extra-key="${r.key}"` : ''}
+                    style="${isVis ? '' : 'display:none;'}">`;
+                html += `<td>`;
+                if (isOpt && isVis) {
+                    html += `<a href="#" class="text-danger me-1" style="font-size:0.85rem;"
+                        onclick="hideExtraRow('apartments','${r.key}');return false;"
+                        title="Скрыть строку"><i class="bi bi-x-circle"></i></a>`;
+                }
+                html += `<strong>${r.name}</strong>`;
                 if (isBase) html += ` <small class="text-success"><i class="bi bi-check-circle-fill"></i> базовая</small>`;
-                else html += ` <small class="text-muted"><i class="bi bi-plus-circle"></i> опция</small>`;
+                else if (isOpt) html += ` <small class="text-muted"><i class="bi bi-plus-circle"></i> опция</small>`;
                 html += `</td>`;
 
                 APT_SIZE_GROUPS.forEach(sg => {
@@ -1798,7 +1847,9 @@
                     data-group="apartments" data-row="${r.key}">${rowSum * multiplier}</td></tr>`;
             });
 
-            html += '</tbody></table></div>';
+            html += '</tbody></table>';
+            html += buildExtraDropdown('apartments');
+            html += '</div>';
             return html;
         }
 
@@ -1825,7 +1876,19 @@
 
             GENERAL_ROWS.forEach(r => {
                 let rowSum = 0;
-                html += `<tr><td><strong>${r.name}</strong></td>`;
+                const isOpt = OPTIONAL_KEYS.includes(r.key);
+                const isVis = !isOpt || isExtraVisible('rent', r.key);
+
+                html += `<tr${isOpt ? ` data-extra-group="rent" data-extra-key="${r.key}"` : ''}
+                    style="${isVis ? '' : 'display:none;'}">`;
+                html += `<td>`;
+                if (isOpt && isVis) {
+                    html += `<a href="#" class="text-danger me-1" style="font-size:0.85rem;"
+                        onclick="hideExtraRow('rent','${r.key}');return false;"
+                        title="Скрыть строку"><i class="bi bi-x-circle"></i></a>`;
+                }
+                html += `<strong>${r.name}</strong></td>`;
+
                 SIZE_GROUPS.forEach(sg => {
                     const val = (pivot[r.key] && pivot[r.key][sg.key]) || 0;
                     rowSum += val;
@@ -1843,7 +1906,9 @@
                     data-group="rent" data-row="${r.key}">${rowSum}</td></tr>`;
             });
 
-            html += '</tbody></table></div>';
+            html += '</tbody></table>';
+            html += buildExtraDropdown('rent');
+            html += '</div>';
             return html;
         }
 
@@ -1858,8 +1923,8 @@
         // Вычисление суммарных итогов по МОП: (типовой * этажи) + нетиповой
         function calcMopTotal() {
             const mopFloors = appData.fittings.mopFloors || 1;
-            const tTyp = calcPivotTotal((appData.fittings.zonePivots || {}).mop || {}, GENERAL_ROWS, mopFloors);
-            const tNon = calcPivotTotal(appData.fittings.mopNontypicalPivot || {}, GENERAL_ROWS);
+            const tTyp = calcPivotTotal((appData.fittings.zonePivots || {}).mop || {}, GENERAL_ROWS, mopFloors, null, 'mop');
+            const tNon = calcPivotTotal(appData.fittings.mopNontypicalPivot || {}, GENERAL_ROWS, 1, null, 'mopNontypical');
             return { count: tTyp.count + tNon.count, area: tTyp.area + tNon.area };
         }
 
@@ -1913,10 +1978,12 @@
                     if (!aptP.no.d315) aptP.no.d315 = 1;
                 }
             }
-            // Аренда: всегда сбрасываем до нулей + НО = кол-во транзитных систем
-            // (защита от устаревших значений в localStorage)
-            appData.fittings.zonePivots.rent = computeFittingsPivot([], GENERAL_ROWS);
-            appData.fittings.zonePivots.rent.no.p1000 = systemsData.rent.length;
+            // Одноразовый сброс аренды: защита от устаревших значений в localStorage
+            if (!appData.fittings.rentReset) {
+                appData.fittings.zonePivots.rent = computeFittingsPivot([], GENERAL_ROWS);
+                appData.fittings.zonePivots.rent.no.p1000 = systemsData.rent.length;
+                appData.fittings.rentReset = true;
+            }
 
             // Нетиповой МОП (пустая таблица по умолчанию)
             if (!appData.fittings.mopNontypicalPivot) {
@@ -1927,6 +1994,7 @@
             }
             // Модели опциональной арматуры квартир
             if (!appData.fittings.aptModels) appData.fittings.aptModels = {};
+            if (!appData.fittings.visibleExtras) appData.fittings.visibleExtras = {};
 
             // Множители
             const aptCount = getAptMultiplier();
@@ -1937,11 +2005,11 @@
             const zoneTotals = {};
             zones.forEach(z => {
                 if (z.key === 'apartments') {
-                    zoneTotals[z.key] = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS, aptCount, APT_SIZE_GROUPS);
+                    zoneTotals[z.key] = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS, aptCount, APT_SIZE_GROUPS, 'apartments');
                 } else if (z.key === 'mop') {
                     zoneTotals[z.key] = calcMopTotal();
                 } else {
-                    zoneTotals[z.key] = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS);
+                    zoneTotals[z.key] = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS, 1, null, z.key);
                 }
                 generalCount += zoneTotals[z.key].count;
             });
@@ -1994,8 +2062,8 @@
 
                 } else if (zone.key === 'mop') {
                     // --- МОП: два вложенных под-аккордеона ---
-                    const tTyp = calcPivotTotal(appData.fittings.zonePivots.mop || {}, GENERAL_ROWS, mopFloors);
-                    const tNon = calcPivotTotal(appData.fittings.mopNontypicalPivot || {}, GENERAL_ROWS);
+                    const tTyp = calcPivotTotal(appData.fittings.zonePivots.mop || {}, GENERAL_ROWS, mopFloors, null, 'mop');
+                    const tNon = calcPivotTotal(appData.fittings.mopNontypicalPivot || {}, GENERAL_ROWS, 1, null, 'mopNontypical');
 
                     html += `<div class="accordion" id="fittingsMopInner">`;
 
@@ -2096,8 +2164,8 @@
         // Обновить заголовки МОП (под-аккордеоны + общий)
         function refreshMopHeaders() {
             const mopFloors = getMopMultiplier();
-            const tTyp = calcPivotTotal((appData.fittings.zonePivots || {}).mop || {}, GENERAL_ROWS, mopFloors);
-            const tNon = calcPivotTotal(appData.fittings.mopNontypicalPivot || {}, GENERAL_ROWS);
+            const tTyp = calcPivotTotal((appData.fittings.zonePivots || {}).mop || {}, GENERAL_ROWS, mopFloors, null, 'mop');
+            const tNon = calcPivotTotal(appData.fittings.mopNontypicalPivot || {}, GENERAL_ROWS, 1, null, 'mopNontypical');
 
             const bTyp = document.getElementById('fittingMopBadge_typical');
             if (bTyp) bTyp.textContent = tTyp.count;
@@ -2112,13 +2180,13 @@
         function refreshGeneralHeader() {
             let gCount = 0;
 
-            const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier(), APT_SIZE_GROUPS);
+            const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier(), APT_SIZE_GROUPS, 'apartments');
             gCount += tApt.count;
 
             const tMop = calcMopTotal();
             gCount += tMop.count;
 
-            const tRent = calcPivotTotal((appData.fittings.zonePivots || {}).rent || {}, GENERAL_ROWS);
+            const tRent = calcPivotTotal((appData.fittings.zonePivots || {}).rent || {}, GENERAL_ROWS, 1, null, 'rent');
             gCount += tRent.count;
 
             const gb = document.getElementById('fittingGroupBadge_general');
@@ -2178,7 +2246,7 @@
                 refreshGeneralHeader();
             } else {
                 const zoneSg = (group === 'apartments') ? APT_SIZE_GROUPS : SIZE_GROUPS;
-                const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS, mul, zoneSg);
+                const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS, mul, zoneSg, group);
                 const zb = document.getElementById(`fittingZoneBadge_${group}`);
                 if (zb) zb.textContent = zt.count;
 
@@ -2224,6 +2292,39 @@
         }
         window.updateAptModel = updateAptModel;
 
+        function showExtraRow(group, rowKey) {
+            if (!appData.fittings.visibleExtras) appData.fittings.visibleExtras = {};
+            if (!appData.fittings.visibleExtras[group]) appData.fittings.visibleExtras[group] = [];
+            if (!appData.fittings.visibleExtras[group].includes(rowKey)) {
+                appData.fittings.visibleExtras[group].push(rowKey);
+            }
+            renderFittingsTab();
+            saveData();
+        }
+        window.showExtraRow = showExtraRow;
+
+        function hideExtraRow(group, rowKey) {
+            // Проверяем, есть ли данные в строке
+            let pivot;
+            if (group === 'mopNontypical') pivot = appData.fittings.mopNontypicalPivot || {};
+            else pivot = (appData.fittings.zonePivots || {})[group] || {};
+            const sgList = (group === 'apartments') ? APT_SIZE_GROUPS : SIZE_GROUPS;
+            let hasData = false;
+            sgList.forEach(sg => {
+                if (pivot[rowKey] && pivot[rowKey][sg.key] > 0) hasData = true;
+            });
+            if (hasData && !confirm('Строка \u00ab' + OPTIONAL_NAMES[rowKey] + '\u00bb содержит данные.\n\u0421\u043a\u0440\u044b\u0442\u044c \u0441\u0442\u0440\u043e\u043a\u0443? (\u0434\u0430\u043d\u043d\u044b\u0435 \u0441\u043e\u0445\u0440\u0430\u043d\u044f\u0442\u0441\u044f)')) {
+                return;
+            }
+            const extras = appData.fittings.visibleExtras || {};
+            if (extras[group]) {
+                extras[group] = extras[group].filter(k => k !== rowKey);
+            }
+            renderFittingsTab();
+            saveData();
+        }
+        window.hideExtraRow = hideExtraRow;
+
         function updateMopFloors(input) {
             const val = Math.max(1, parseInt(input.value) || 1);
             appData.fittings.mopFloors = val;
@@ -2236,7 +2337,7 @@
             let gCount = 0, gArea = 0;
 
             // Квартиры
-            const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier(), APT_SIZE_GROUPS);
+            const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier(), APT_SIZE_GROUPS, 'apartments');
             gCount += tApt.count; gArea += tApt.area;
 
             // МОП (типовой * этажи + нетиповой)
@@ -2244,7 +2345,7 @@
             gCount += tMop.count; gArea += tMop.area;
 
             // Аренда
-            const tRent = calcPivotTotal((appData.fittings.zonePivots || {}).rent || {}, GENERAL_ROWS);
+            const tRent = calcPivotTotal((appData.fittings.zonePivots || {}).rent || {}, GENERAL_ROWS, 1, null, 'rent');
             gCount += tRent.count; gArea += tRent.area;
 
             const sTotal = calcPivotTotal(appData.fittings.smokePivot || {}, SMOKE_ROWS);
