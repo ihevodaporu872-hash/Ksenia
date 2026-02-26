@@ -1639,7 +1639,8 @@
             return pivot;
         }
 
-        function calcPivotTotal(pivot, rows) {
+        function calcPivotTotal(pivot, rows, multiplier) {
+            multiplier = multiplier || 1;
             let count = 0, area = 0;
             rows.forEach(r => {
                 SIZE_GROUPS.forEach(sg => {
@@ -1648,10 +1649,12 @@
                     area += val * sg.maxP * 0.3;
                 });
             });
-            return { count, area };
+            return { count: count * multiplier, area: area * multiplier };
         }
 
-        function buildPivotTable(pivot, rows, groupId) {
+        function buildPivotTable(pivot, rows, groupId, multiplier) {
+            multiplier = multiplier || 1;
+            const showHints = multiplier > 1;
             let html = `<div class="fittings-table-wrap">
                 <table class="table table-sm table-bordered mb-0" style="font-size:0.85rem;">
                     <thead class="table-light">
@@ -1666,20 +1669,24 @@
                     <tbody>`;
 
             rows.forEach(r => {
-                let rowTotal = 0;
+                let rowSum = 0;
                 html += `<tr><td><strong>${r.name}</strong></td>`;
                 SIZE_GROUPS.forEach(sg => {
                     const val = (pivot[r.key] && pivot[r.key][sg.key]) || 0;
-                    rowTotal += val;
+                    rowSum += val;
                     html += `<td style="text-align:center;">
                         <input type="number" class="form-control form-control-sm text-center"
                             value="${val}" min="0"
                             data-group="${groupId}" data-row="${r.key}" data-col="${sg.key}"
-                            oninput="updatePivotCell(this)" style="width:70px;margin:0 auto;">
-                    </td>`;
+                            oninput="updatePivotCell(this)" style="width:70px;margin:0 auto;">`;
+                    if (showHints) {
+                        html += `<small class="text-muted apt-hint" data-row="${r.key}" data-col="${sg.key}"
+                            style="display:block;font-size:0.7rem;">(Всего: ${val * multiplier})</small>`;
+                    }
+                    html += `</td>`;
                 });
                 html += `<td style="text-align:center;font-weight:700;" class="pivot-row-total"
-                    data-group="${groupId}" data-row="${r.key}">${rowTotal}</td></tr>`;
+                    data-group="${groupId}" data-row="${r.key}">${rowSum * multiplier}</td></tr>`;
             });
 
             html += '</tbody></table></div>';
@@ -1733,11 +1740,15 @@
                 appData.fittings.smokePivot = computeFittingsPivot(smokeSystems, SMOKE_ROWS);
             }
 
+            // Количество квартир (множитель для зоны apartments)
+            const aptCount = appData.fittings.aptCount || 1;
+
             // Итоги по зонам и общий итог общеобменной
             let generalCount = 0, generalArea = 0;
             const zoneTotals = {};
             zones.forEach(z => {
-                const t = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS);
+                const mul = z.key === 'apartments' ? aptCount : 1;
+                const t = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS, mul);
                 zoneTotals[z.key] = t;
                 generalCount += t.count;
                 generalArea += t.area;
@@ -1766,6 +1777,7 @@
             // Вложенные зоны со сводными таблицами
             zones.forEach((zone, zi) => {
                 const zt = zoneTotals[zone.key];
+                const mul = zone.key === 'apartments' ? aptCount : 1;
                 html += `<div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button ${zi > 0 ? 'collapsed' : ''}" type="button"
@@ -1779,8 +1791,17 @@
                     </h2>
                     <div id="fittingZone_${zone.key}" class="accordion-collapse collapse ${zi === 0 ? 'show' : ''}"
                         data-bs-parent="#fittingsGeneralInner">
-                        <div class="accordion-body p-2">
-                            ${buildPivotTable(appData.fittings.zonePivots[zone.key] || {}, GENERAL_ROWS, zone.key)}
+                        <div class="accordion-body p-2">`;
+                if (zone.key === 'apartments') {
+                    html += `<div class="d-flex align-items-center mb-2">
+                        <label class="me-2 fw-bold" style="font-size:0.85rem;">Количество квартир:</label>
+                        <input type="number" class="form-control form-control-sm" id="aptCountInput"
+                            value="${aptCount}" min="1" style="width:90px;"
+                            oninput="updateAptCount(this)">
+                        <small class="text-muted ms-2" style="font-size:0.78rem;">значения в ячейках — на 1 квартиру</small>
+                    </div>`;
+                }
+                html += `${buildPivotTable(appData.fittings.zonePivots[zone.key] || {}, GENERAL_ROWS, zone.key, mul)}
                         </div>
                     </div>
                 </div>`;
@@ -1812,6 +1833,10 @@
             updateFittingsTotals();
         }
 
+        function getAptMultiplier() {
+            return appData.fittings.aptCount || 1;
+        }
+
         function updatePivotCell(input) {
             const group = input.dataset.group; // 'apartments', 'mop', 'rent' или 'smoke'
             const row = input.dataset.row;
@@ -1830,6 +1855,8 @@
                 appData.fittings.zonePivots[group][row][col] = val;
             }
 
+            const mul = group === 'apartments' ? getAptMultiplier() : 1;
+
             // Обновить ИТОГО по строке
             const pivot = group === 'smoke' ? appData.fittings.smokePivot : appData.fittings.zonePivots[group];
             let rowTotal = 0;
@@ -1837,7 +1864,13 @@
                 rowTotal += (pivot[row] && pivot[row][sg.key]) || 0;
             });
             const totalCell = document.querySelector(`.pivot-row-total[data-group="${group}"][data-row="${row}"]`);
-            if (totalCell) totalCell.textContent = rowTotal;
+            if (totalCell) totalCell.textContent = rowTotal * mul;
+
+            // Обновить подсказку для ячейки (для квартир)
+            if (group === 'apartments' && mul > 1) {
+                const hint = document.querySelector(`.apt-hint[data-row="${row}"][data-col="${col}"]`);
+                if (hint) hint.textContent = `(Всего: ${val * mul})`;
+            }
 
             if (group === 'smoke') {
                 // Обновить заголовок Противодымной
@@ -1847,8 +1880,8 @@
                 const sa = document.getElementById('fittingGroupArea_smoke');
                 if (sa) sa.textContent = `\u03a3 S = ${st.area.toFixed(2)} м\u00b2`;
             } else {
-                // Обновить заголовок зоны
-                const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS);
+                // Обновить заголовок зоны (с множителем для квартир)
+                const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS, mul);
                 const zb = document.getElementById(`fittingZoneBadge_${group}`);
                 if (zb) zb.textContent = zt.count;
                 const za = document.getElementById(`fittingZoneArea_${group}`);
@@ -1857,7 +1890,8 @@
                 // Обновить заголовок Общеобменной (сумма всех зон)
                 let gCount = 0, gArea = 0;
                 ['apartments', 'mop', 'rent'].forEach(zk => {
-                    const t = calcPivotTotal((appData.fittings.zonePivots || {})[zk] || {}, GENERAL_ROWS);
+                    const m = zk === 'apartments' ? getAptMultiplier() : 1;
+                    const t = calcPivotTotal((appData.fittings.zonePivots || {})[zk] || {}, GENERAL_ROWS, m);
                     gCount += t.count;
                     gArea += t.area;
                 });
@@ -1872,10 +1906,20 @@
         }
         window.updatePivotCell = updatePivotCell;
 
+        function updateAptCount(input) {
+            const val = Math.max(1, parseInt(input.value) || 1);
+            appData.fittings.aptCount = val;
+            // Перерисовать всю вкладку, чтобы обновить подсказки и итоги
+            renderFittingsTab();
+            saveData();
+        }
+        window.updateAptCount = updateAptCount;
+
         function updateFittingsTotals() {
             let gCount = 0, gArea = 0;
             ['apartments', 'mop', 'rent'].forEach(zk => {
-                const t = calcPivotTotal((appData.fittings.zonePivots || {})[zk] || {}, GENERAL_ROWS);
+                const m = zk === 'apartments' ? getAptMultiplier() : 1;
+                const t = calcPivotTotal((appData.fittings.zonePivots || {})[zk] || {}, GENERAL_ROWS, m);
                 gCount += t.count;
                 gArea += t.area;
             });
