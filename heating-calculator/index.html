@@ -669,17 +669,6 @@
                         <i class="bi bi-info-circle"></i> Арматура распределена по зонам на основе назначения систем из вкладки «Воздуховоды»
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Толщина стали (мм)</label>
-                            <select class="form-select" id="fittingSteelThickness">
-                                <option value="0.5">0.5</option>
-                                <option value="0.7" selected>0.7</option>
-                                <option value="0.9">0.9</option>
-                            </select>
-                        </div>
-                    </div>
-
                     <div class="accordion" id="fittingsAccordion"></div>
 
                     <div class="total-row mt-3">
@@ -891,7 +880,6 @@
             }
 
             // Арматура
-            if (appData.fittings.thickness) document.getElementById('fittingSteelThickness').value = appData.fittings.thickness;
             renderFittingsTab();
 
             // Изоляция
@@ -1612,15 +1600,22 @@
             { key: 'p3600', name: 'до P=3600', maxP: 3.6 }
         ];
 
+        // Укороченный набор для квартир (только малые сечения)
+        const APT_SIZE_GROUPS = [
+            { key: 'd315', name: 'до \u0414315', maxP: 0.99 },
+            { key: 'p1000', name: 'до P=1000', maxP: 1.0 }
+        ];
+
         function isSmokeSystem(systemName) {
             const name = (systemName || '').trim().toUpperCase();
             return !!name.match(/^(\u0414\u0423|\u0412\u0414|\u041f\u0414)/);
         }
 
-        function getSizeGroup(system) {
+        function getSizeGroup(system, clampToP1000) {
             if (system.type === 'circular' && system.diameter <= 315) return 'd315';
             const pMm = (system.perimeter || 0) * 1000;
             if (pMm <= 1000) return 'p1000';
+            if (clampToP1000) return 'p1000';
             if (pMm <= 1600) return 'p1600';
             if (pMm <= 2400) return 'p2400';
             return 'p3600';
@@ -1649,14 +1644,15 @@
             return defaults;
         }
 
-        function computeFittingsPivot(systems, rows) {
+        function computeFittingsPivot(systems, rows, sizeGroups, clampToP1000) {
+            sizeGroups = sizeGroups || SIZE_GROUPS;
             const pivot = {};
             rows.forEach(r => {
                 pivot[r.key] = {};
-                SIZE_GROUPS.forEach(sg => { pivot[r.key][sg.key] = 0; });
+                sizeGroups.forEach(sg => { pivot[r.key][sg.key] = 0; });
             });
             systems.forEach(s => {
-                const sg = getSizeGroup(s);
+                const sg = getSizeGroup(s, clampToP1000);
                 const defs = getDefaultFittings(s);
                 rows.forEach(r => {
                     pivot[r.key][sg] += (defs[r.key] || 0);
@@ -1665,11 +1661,12 @@
             return pivot;
         }
 
-        function calcPivotTotal(pivot, rows, multiplier) {
+        function calcPivotTotal(pivot, rows, multiplier, sizeGroups) {
             multiplier = multiplier || 1;
+            sizeGroups = sizeGroups || SIZE_GROUPS;
             let count = 0, area = 0;
             rows.forEach(r => {
-                SIZE_GROUPS.forEach(sg => {
+                sizeGroups.forEach(sg => {
                     const val = (pivot[r.key] && pivot[r.key][sg.key]) || 0;
                     count += val;
                     area += val * sg.maxP * 0.3;
@@ -1727,14 +1724,14 @@
             const models = appData.fittings.aptModels || {};
 
             let html = `<div class="fittings-table-wrap">
-                <table class="table table-sm table-bordered mb-0" style="font-size:0.85rem;">
+                <table class="table table-sm table-bordered mb-0" style="font-size:0.85rem;table-layout:fixed;width:100%;">
                     <thead class="table-light">
                         <tr>
-                            <th style="min-width:150px;">Тип арматуры</th>`;
-            SIZE_GROUPS.forEach(sg => {
-                html += `<th style="text-align:center;min-width:120px;">${sg.name}</th>`;
+                            <th style="width:35%;">Тип арматуры</th>`;
+            APT_SIZE_GROUPS.forEach(sg => {
+                html += `<th style="text-align:center;width:25%;">${sg.name}</th>`;
             });
-            html += `<th style="text-align:center;min-width:70px;font-weight:700;">ИТОГО</th>
+            html += `<th style="text-align:center;width:15%;font-weight:700;">ИТОГО</th>
                         </tr>
                     </thead>
                     <tbody>`;
@@ -1748,7 +1745,7 @@
                 else html += ` <small class="text-muted"><i class="bi bi-plus-circle"></i> опция</small>`;
                 html += `</td>`;
 
-                SIZE_GROUPS.forEach(sg => {
+                APT_SIZE_GROUPS.forEach(sg => {
                     let val = (pivot[r.key] && pivot[r.key][sg.key]) || 0;
                     // Для опциональных: без выбранной модели значение не считается
                     if (!isBase) {
@@ -1764,7 +1761,7 @@
                                 value="${val}" min="0"
                                 data-group="apartments" data-row="${r.key}" data-col="${sg.key}"
                                 oninput="updatePivotCell(this)"
-                                style="width:70px;margin:0 auto;background:rgba(76,175,80,0.12);border-color:rgba(76,175,80,0.3);">`;
+                                style="width:80px;margin:0 auto;background:rgba(76,175,80,0.12);border-color:rgba(76,175,80,0.3);">`;
                     } else {
                         // --- Опциональная: select модели + qty ---
                         const catalog = OPT_MODELS[r.key] || {};
@@ -1785,7 +1782,7 @@
                                 <input type="number" class="form-control form-control-sm text-center"
                                     value="${hasModel ? val || 1 : 0}" min="0"
                                     data-group="apartments" data-row="${r.key}" data-col="${sg.key}"
-                                    oninput="updatePivotCell(this)" style="width:70px;margin:0 auto;">`;
+                                    oninput="updatePivotCell(this)" style="width:80px;margin:0 auto;">`;
                         if (showHints) {
                             html += `<small class="text-muted apt-hint" data-row="${r.key}" data-col="${sg.key}"
                                 style="display:block;font-size:0.7rem;">${val > 0 ? '(\u0412\u0441\u0435\u0433\u043e: ' + (val * multiplier) + ')' : ''}</small>`;
@@ -1857,7 +1854,12 @@
             if (!appData.fittings.zonePivots) {
                 appData.fittings.zonePivots = {};
                 zones.forEach(z => {
-                    appData.fittings.zonePivots[z.key] = computeFittingsPivot(z.items, GENERAL_ROWS);
+                    if (z.key === 'apartments') {
+                        // Квартиры: только d315 и p1000, крупные сечения → p1000
+                        appData.fittings.zonePivots[z.key] = computeFittingsPivot(z.items, GENERAL_ROWS, APT_SIZE_GROUPS, true);
+                    } else {
+                        appData.fittings.zonePivots[z.key] = computeFittingsPivot(z.items, GENERAL_ROWS);
+                    }
                 });
                 // Базовая комплектация квартир: ДК и НО по 1 шт. в d315
                 const aptP = appData.fittings.zonePivots.apartments;
@@ -1885,7 +1887,7 @@
             const zoneTotals = {};
             zones.forEach(z => {
                 if (z.key === 'apartments') {
-                    const t = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS, aptCount);
+                    const t = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS, aptCount, APT_SIZE_GROUPS);
                     zoneTotals[z.key] = t;
                 } else if (z.key === 'mop') {
                     zoneTotals[z.key] = calcMopTotal();
@@ -2082,7 +2084,7 @@
             let gCount = 0, gArea = 0;
 
             // Квартиры
-            const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier());
+            const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier(), APT_SIZE_GROUPS);
             gCount += tApt.count; gArea += tApt.area;
 
             // МОП (типовой + нетиповой)
@@ -2129,8 +2131,9 @@
             else if (group === 'mopNontypical') pivot = appData.fittings.mopNontypicalPivot;
             else pivot = appData.fittings.zonePivots[group];
 
+            const sgList = (group === 'apartments') ? APT_SIZE_GROUPS : SIZE_GROUPS;
             let rowTotal = 0;
-            SIZE_GROUPS.forEach(sg => {
+            sgList.forEach(sg => {
                 rowTotal += (pivot[row] && pivot[row][sg.key]) || 0;
             });
             const totalCell = document.querySelector(`.pivot-row-total[data-group="${group}"][data-row="${row}"]`);
@@ -2155,7 +2158,8 @@
                 refreshGeneralHeader();
             } else {
                 // apartments или rent
-                const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS, mul);
+                const zoneSg = (group === 'apartments') ? APT_SIZE_GROUPS : SIZE_GROUPS;
+                const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS, mul, zoneSg);
                 const zb = document.getElementById(`fittingZoneBadge_${group}`);
                 if (zb) zb.textContent = zt.count;
                 const za = document.getElementById(`fittingZoneArea_${group}`);
@@ -2215,7 +2219,7 @@
             let gCount = 0, gArea = 0;
 
             // Квартиры
-            const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier());
+            const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier(), APT_SIZE_GROUPS);
             gCount += tApt.count; gArea += tApt.area;
 
             // МОП (типовой * этажи + нетиповой)
@@ -2231,21 +2235,16 @@
             const totalCount = gCount + sTotal.count;
             const totalArea = gArea + sTotal.area;
 
-            const thickness = parseFloat(document.getElementById('fittingSteelThickness').value) || 0.7;
+            const thickness = 0.7;
             const totalWeight = totalArea * (thickness / 1000) * 7850;
 
             appData.fittings.totalArea = totalArea;
             appData.fittings.totalWeight = totalWeight;
-            appData.fittings.thickness = thickness;
 
             document.getElementById('totalFittingsCount').textContent = totalCount;
             document.getElementById('totalFittingsArea').textContent = `${totalArea.toFixed(2)} м\u00b2`;
             document.getElementById('totalFittingsWeight').textContent = `${totalWeight.toFixed(2)} кг`;
         }
-
-        document.getElementById('fittingSteelThickness').addEventListener('change', () => {
-            updateFittingsTotals();
-        });
 
         // === ИЗОЛЯЦИЯ ===
         document.getElementById('syncFromDucts').addEventListener('click', () => {
