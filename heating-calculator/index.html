@@ -673,15 +673,11 @@
 
                     <div class="total-row mt-3">
                         <div class="row">
-                            <div class="col-4 text-center">
+                            <div class="col-6 text-center">
                                 <small>Всего элементов</small>
                                 <div class="fs-5" id="totalFittingsCount">0</div>
                             </div>
-                            <div class="col-4 text-center">
-                                <small>Общая площадь арматуры</small>
-                                <div class="fs-5" id="totalFittingsArea">0 м²</div>
-                            </div>
-                            <div class="col-4 text-center">
+                            <div class="col-6 text-center">
                                 <small>Общий вес</small>
                                 <div class="fs-5" id="totalFittingsWeight">0 кг</div>
                             </div>
@@ -1882,20 +1878,18 @@
             const aptCount = getAptMultiplier();
             const mopFloors = appData.fittings.mopFloors || 1;
 
-            // Итоги по зонам и общий итог общеобменной
-            let generalCount = 0, generalArea = 0;
+            // Итоги по зонам (только count для заголовков)
+            let generalCount = 0;
             const zoneTotals = {};
             zones.forEach(z => {
                 if (z.key === 'apartments') {
-                    const t = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS, aptCount, APT_SIZE_GROUPS);
-                    zoneTotals[z.key] = t;
+                    zoneTotals[z.key] = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS, aptCount, APT_SIZE_GROUPS);
                 } else if (z.key === 'mop') {
                     zoneTotals[z.key] = calcMopTotal();
                 } else {
                     zoneTotals[z.key] = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS);
                 }
                 generalCount += zoneTotals[z.key].count;
-                generalArea += zoneTotals[z.key].area;
             });
             const sTotal = calcPivotTotal(appData.fittings.smokePivot, SMOKE_ROWS);
 
@@ -1909,8 +1903,6 @@
                         <i class="bi bi-wind me-2"></i>
                         <span>Общеобменная вентиляция</span>
                         <span class="badge bg-primary ms-2" id="fittingGroupBadge_general">${generalCount}</span>
-                        <span class="ms-auto me-3 text-muted" style="font-size:0.85rem;"
-                            id="fittingGroupArea_general">\u03a3 S = ${generalArea.toFixed(2)} м\u00b2</span>
                     </button>
                 </h2>
                 <div id="fittingGroupGeneral" class="accordion-collapse collapse show"
@@ -1929,8 +1921,6 @@
                             <i class="bi ${zone.icon} me-2"></i>
                             <span>${zone.name}</span>
                             <span class="badge bg-primary ms-2" id="fittingZoneBadge_${zone.key}">${zt.count}</span>
-                            <span class="ms-auto me-3 text-muted" style="font-size:0.85rem;"
-                                id="fittingZoneArea_${zone.key}">S = ${zt.area.toFixed(2)} м\u00b2</span>
                         </button>
                     </h2>
                     <div id="fittingZone_${zone.key}" class="accordion-collapse collapse ${zi === 0 ? 'show' : ''}"
@@ -1963,8 +1953,6 @@
                                 <i class="bi bi-layers me-2"></i>
                                 <span>Типовой этаж</span>
                                 <span class="badge bg-info ms-2" id="fittingMopBadge_typical">${tTyp.count}</span>
-                                <span class="ms-auto me-3 text-muted" style="font-size:0.85rem;"
-                                    id="fittingMopArea_typical">S = ${tTyp.area.toFixed(2)} м\u00b2</span>
                             </button>
                         </h2>
                         <div id="fittingMopTypical" class="accordion-collapse collapse show"
@@ -1990,8 +1978,6 @@
                                 <i class="bi bi-bricks me-2"></i>
                                 <span>Нетиповой этаж</span>
                                 <span class="badge bg-info ms-2" id="fittingMopBadge_nontypical">${tNon.count}</span>
-                                <span class="ms-auto me-3 text-muted" style="font-size:0.85rem;"
-                                    id="fittingMopArea_nontypical">S = ${tNon.area.toFixed(2)} м\u00b2</span>
                             </button>
                         </h2>
                         <div id="fittingMopNontypical" class="accordion-collapse collapse"
@@ -2024,8 +2010,6 @@
                         <i class="bi bi-shield-exclamation me-2"></i>
                         <span>Противодымная вентиляция</span>
                         <span class="badge bg-danger ms-2" id="fittingGroupBadge_smoke">${sTotal.count}</span>
-                        <span class="ms-auto me-3 text-muted" style="font-size:0.85rem;"
-                            id="fittingGroupArea_smoke">\u03a3 S = ${sTotal.area.toFixed(2)} м\u00b2</span>
                     </button>
                 </h2>
                 <div id="fittingGroupSmoke" class="accordion-collapse collapse"
@@ -2063,42 +2047,28 @@
 
             const bTyp = document.getElementById('fittingMopBadge_typical');
             if (bTyp) bTyp.textContent = tTyp.count;
-            const aTyp = document.getElementById('fittingMopArea_typical');
-            if (aTyp) aTyp.textContent = `S = ${tTyp.area.toFixed(2)} м\u00b2`;
-
             const bNon = document.getElementById('fittingMopBadge_nontypical');
             if (bNon) bNon.textContent = tNon.count;
-            const aNon = document.getElementById('fittingMopArea_nontypical');
-            if (aNon) aNon.textContent = `S = ${tNon.area.toFixed(2)} м\u00b2`;
 
-            // Общий заголовок зоны МОП
-            const mopTotal = { count: tTyp.count + tNon.count, area: tTyp.area + tNon.area };
             const zb = document.getElementById('fittingZoneBadge_mop');
-            if (zb) zb.textContent = mopTotal.count;
-            const za = document.getElementById('fittingZoneArea_mop');
-            if (za) za.textContent = `S = ${mopTotal.area.toFixed(2)} м\u00b2`;
+            if (zb) zb.textContent = tTyp.count + tNon.count;
         }
 
         // Обновить заголовок Общеобменной (сумма всех зон)
         function refreshGeneralHeader() {
-            let gCount = 0, gArea = 0;
+            let gCount = 0;
 
-            // Квартиры
             const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier(), APT_SIZE_GROUPS);
-            gCount += tApt.count; gArea += tApt.area;
+            gCount += tApt.count;
 
-            // МОП (типовой + нетиповой)
             const tMop = calcMopTotal();
-            gCount += tMop.count; gArea += tMop.area;
+            gCount += tMop.count;
 
-            // Аренда
             const tRent = calcPivotTotal((appData.fittings.zonePivots || {}).rent || {}, GENERAL_ROWS);
-            gCount += tRent.count; gArea += tRent.area;
+            gCount += tRent.count;
 
             const gb = document.getElementById('fittingGroupBadge_general');
             if (gb) gb.textContent = gCount;
-            const ga = document.getElementById('fittingGroupArea_general');
-            if (ga) ga.textContent = `\u03a3 S = ${gArea.toFixed(2)} м\u00b2`;
         }
 
         function updatePivotCell(input) {
@@ -2146,24 +2116,17 @@
             }
 
             if (group === 'smoke') {
-                // Обновить заголовок Противодымной
                 const st = calcPivotTotal(appData.fittings.smokePivot, SMOKE_ROWS);
                 const sb = document.getElementById('fittingGroupBadge_smoke');
                 if (sb) sb.textContent = st.count;
-                const sa = document.getElementById('fittingGroupArea_smoke');
-                if (sa) sa.textContent = `\u03a3 S = ${st.area.toFixed(2)} м\u00b2`;
             } else if (group === 'mop' || group === 'mopNontypical') {
-                // Обновить заголовки МОП
                 refreshMopHeaders();
                 refreshGeneralHeader();
             } else {
-                // apartments или rent
                 const zoneSg = (group === 'apartments') ? APT_SIZE_GROUPS : SIZE_GROUPS;
                 const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS, mul, zoneSg);
                 const zb = document.getElementById(`fittingZoneBadge_${group}`);
                 if (zb) zb.textContent = zt.count;
-                const za = document.getElementById(`fittingZoneArea_${group}`);
-                if (za) za.textContent = `S = ${zt.area.toFixed(2)} м\u00b2`;
 
                 refreshGeneralHeader();
             }
@@ -2242,7 +2205,6 @@
             appData.fittings.totalWeight = totalWeight;
 
             document.getElementById('totalFittingsCount').textContent = totalCount;
-            document.getElementById('totalFittingsArea').textContent = `${totalArea.toFixed(2)} м\u00b2`;
             document.getElementById('totalFittingsWeight').textContent = `${totalWeight.toFixed(2)} кг`;
         }
 
