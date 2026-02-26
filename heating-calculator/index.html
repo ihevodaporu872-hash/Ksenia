@@ -1154,6 +1154,7 @@
             appData.fittings.zonePivots = null;
             appData.fittings.mopNontypicalPivot = null;
             appData.fittings.smokePivot = null;
+            appData.fittings.aptModels = null;
 
             // Пропускаем заголовок если есть (проверяем, является ли третий столбец числом)
             const startRow = (data[0] && isNaN(cleanNumber(data[0][2]))) ? 1 : 0;
@@ -1586,6 +1587,23 @@
             { key: 'du', name: 'Клапан ДУ' }
         ];
 
+        // Каталоги моделей для опциональной арматуры (квартиры)
+        const SHG_MODELS = {
+            d315:  ['ГТК Д100-500', 'ГТК Д100-900', 'ГТК Д125-500', 'ГТК Д125-900', 'ГТК Д160-500', 'ГТК Д160-900', 'ГТК Д200-900', 'ГТК Д250-900', 'ГТК Д315-900'],
+            p1000: ['ГТП 500×250-500', 'ГТП 500×300-900'],
+            p1600: ['ГТП 600×400-900', 'ГТП 800×400-900'],
+            p2400: ['ГТП 1000×500-900', 'ГТП 1200×500-900'],
+            p3600: ['ГТП 1200×800-900', 'ГТП 1500×600-900']
+        };
+        const CAV_MODELS = {
+            d315:  ['CAV-100', 'CAV-125', 'CAV-160', 'CAV-200', 'CAV-250', 'CAV-315'],
+            p1000: ['CAV-А 400×200', 'CAV-А 500×250'],
+            p1600: ['CAV-А 600×300', 'CAV-А 600×400'],
+            p2400: ['CAV-А 800×500', 'CAV-А 1000×400'],
+            p3600: ['CAV-А 1200×500', 'CAV-А 1200×600']
+        };
+        const OPT_MODELS = { shg: SHG_MODELS, cav: CAV_MODELS };
+
         const SIZE_GROUPS = [
             { key: 'd315', name: 'до \u0414315', maxP: 0.99 },
             { key: 'p1000', name: 'до P=1000', maxP: 1.0 },
@@ -1701,6 +1719,87 @@
             return html;
         }
 
+        // Специализированная таблица для квартир: базовые (ДК, НО) + опциональные (ШГ, CAV)
+        function buildApartmentsPivotTable(pivot, multiplier) {
+            multiplier = multiplier || 1;
+            const showHints = multiplier > 1;
+            const baseKeys = ['dk', 'no'];
+            const models = appData.fittings.aptModels || {};
+
+            let html = `<div class="fittings-table-wrap">
+                <table class="table table-sm table-bordered mb-0" style="font-size:0.85rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width:150px;">Тип арматуры</th>`;
+            SIZE_GROUPS.forEach(sg => {
+                html += `<th style="text-align:center;min-width:120px;">${sg.name}</th>`;
+            });
+            html += `<th style="text-align:center;min-width:70px;font-weight:700;">ИТОГО</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            GENERAL_ROWS.forEach(r => {
+                let rowSum = 0;
+                const isBase = baseKeys.includes(r.key);
+
+                html += `<tr><td><strong>${r.name}</strong>`;
+                if (isBase) html += ` <small class="text-success"><i class="bi bi-check-circle-fill"></i> базовая</small>`;
+                else html += ` <small class="text-muted"><i class="bi bi-plus-circle"></i> опция</small>`;
+                html += `</td>`;
+
+                SIZE_GROUPS.forEach(sg => {
+                    const val = (pivot[r.key] && pivot[r.key][sg.key]) || 0;
+                    rowSum += val;
+
+                    if (isBase) {
+                        // --- Базовая комплектация: input с зелёным фоном ---
+                        html += `<td style="text-align:center;background:rgba(76,175,80,0.07);">
+                            <input type="number" class="form-control form-control-sm text-center"
+                                value="${val}" min="0"
+                                data-group="apartments" data-row="${r.key}" data-col="${sg.key}"
+                                oninput="updatePivotCell(this)"
+                                style="width:70px;margin:0 auto;background:rgba(76,175,80,0.12);border-color:rgba(76,175,80,0.3);">`;
+                    } else {
+                        // --- Опциональная: select модели + qty ---
+                        const catalog = OPT_MODELS[r.key] || {};
+                        const modelList = catalog[sg.key] || [];
+                        const selModel = (models[r.key] && models[r.key][sg.key]) || '';
+                        const showQty = !!selModel || val > 0;
+
+                        html += `<td style="text-align:center;">
+                            <select class="form-select form-select-sm" style="font-size:0.75rem;padding:2px 20px 2px 4px;"
+                                data-group="apartments" data-row="${r.key}" data-col="${sg.key}"
+                                onchange="updateAptModel(this)">
+                                <option value="">\u2014 нет \u2014</option>`;
+                        modelList.forEach(m => {
+                            html += `<option value="${m}" ${m === selModel ? 'selected' : ''}>${m}</option>`;
+                        });
+                        html += `</select>
+                            <div class="apt-model-qty" style="margin-top:2px;${showQty ? '' : 'display:none;'}">
+                                <input type="number" class="form-control form-control-sm text-center"
+                                    value="${val}" min="0"
+                                    data-group="apartments" data-row="${r.key}" data-col="${sg.key}"
+                                    oninput="updatePivotCell(this)" style="width:70px;margin:0 auto;">
+                            </div>`;
+                    }
+
+                    // Подсказка «Всего» (всегда рендерим элемент при multiplier>1)
+                    if (showHints) {
+                        html += `<small class="text-muted apt-hint" data-row="${r.key}" data-col="${sg.key}"
+                            style="display:block;font-size:0.7rem;">${val > 0 ? '(\u0412\u0441\u0435\u0433\u043e: ' + (val * multiplier) + ')' : ''}</small>`;
+                    }
+                    html += `</td>`;
+                });
+
+                html += `<td style="text-align:center;font-weight:700;${isBase ? 'background:rgba(76,175,80,0.07);' : ''}" class="pivot-row-total"
+                    data-group="apartments" data-row="${r.key}">${rowSum * multiplier}</td></tr>`;
+            });
+
+            html += '</tbody></table></div>';
+            return html;
+        }
+
         function getFittingZone(purpose) {
             const p = (purpose || '').toLowerCase();
             if (p.includes('жилье') || p.includes('кв') || p.includes('квартир')) return 'apartments';
@@ -1751,6 +1850,12 @@
                 zones.forEach(z => {
                     appData.fittings.zonePivots[z.key] = computeFittingsPivot(z.items, GENERAL_ROWS);
                 });
+                // Базовая комплектация квартир: ДК и НО по 1 шт. в d315
+                const aptP = appData.fittings.zonePivots.apartments;
+                if (aptP) {
+                    if (!aptP.dk.d315) aptP.dk.d315 = 1;
+                    if (!aptP.no.d315) aptP.no.d315 = 1;
+                }
             }
             // Нетиповой МОП (пустая таблица по умолчанию)
             if (!appData.fittings.mopNontypicalPivot) {
@@ -1759,6 +1864,8 @@
             if (!appData.fittings.smokePivot) {
                 appData.fittings.smokePivot = computeFittingsPivot(smokeSystems, SMOKE_ROWS);
             }
+            // Модели опциональной арматуры квартир
+            if (!appData.fittings.aptModels) appData.fittings.aptModels = {};
 
             // Множители
             const aptCount = getAptMultiplier();
@@ -1828,7 +1935,7 @@
                             <i class="bi bi-link-45deg"></i> данные из «Основных характеристик здания» · значения в ячейках — на 1 квартиру
                         </small>
                     </div>`;
-                    html += buildPivotTable(appData.fittings.zonePivots.apartments || {}, GENERAL_ROWS, 'apartments', aptCount);
+                    html += buildApartmentsPivotTable(appData.fittings.zonePivots.apartments || {}, aptCount);
 
                 } else if (zone.key === 'mop') {
                     // --- МОП: два вложенных под-аккордеона ---
@@ -2022,13 +2129,8 @@
 
             // Обновить подсказку (для групп с множителем > 1)
             if (mul > 1) {
-                const hint = document.querySelector(`small.apt-hint[data-row="${row}"][data-col="${col}"]`);
-                if (hint && hint.closest(`[data-group="${group}"]`) ||
-                    input.closest('.fittings-table-wrap')) {
-                    // Ищем hint рядом с input
-                    const hintEl = input.parentElement.querySelector(`.apt-hint[data-row="${row}"][data-col="${col}"]`);
-                    if (hintEl) hintEl.textContent = `(Всего: ${val * mul})`;
-                }
+                const hintEl = input.closest('td').querySelector(`.apt-hint[data-row="${row}"][data-col="${col}"]`);
+                if (hintEl) hintEl.textContent = val > 0 ? `(\u0412\u0441\u0435\u0433\u043e: ${val * mul})` : '';
             }
 
             if (group === 'smoke') {
@@ -2057,6 +2159,37 @@
             saveData();
         }
         window.updatePivotCell = updatePivotCell;
+
+        function updateAptModel(select) {
+            const row = select.dataset.row;
+            const col = select.dataset.col;
+            const model = select.value;
+
+            if (!appData.fittings.aptModels) appData.fittings.aptModels = {};
+            if (!appData.fittings.aptModels[row]) appData.fittings.aptModels[row] = {};
+            appData.fittings.aptModels[row][col] = model;
+
+            const td = select.closest('td');
+            const qtyDiv = td.querySelector('.apt-model-qty');
+            const qtyInput = qtyDiv ? qtyDiv.querySelector('input') : null;
+
+            if (model) {
+                if (qtyDiv) qtyDiv.style.display = '';
+                if (qtyInput && (parseInt(qtyInput.value) || 0) === 0) {
+                    qtyInput.value = 1;
+                    updatePivotCell(qtyInput);
+                }
+            } else {
+                if (qtyInput) {
+                    qtyInput.value = 0;
+                    updatePivotCell(qtyInput);
+                }
+                if (qtyDiv) qtyDiv.style.display = 'none';
+            }
+
+            saveData();
+        }
+        window.updateAptModel = updateAptModel;
 
         function updateMopFloors(input) {
             const val = Math.max(1, parseInt(input.value) || 1);
