@@ -472,7 +472,7 @@
                     <div class="csv-upload-area" id="csvUploadArea">
                         <i class="bi bi-file-earmark-excel"></i>
                         <p class="mb-1 mt-2"><strong>Загрузить Excel файл</strong></p>
-                        <small class="text-muted">Столбцы: A - Система, B - Назначение, C - Расход L (м³/ч)</small>
+                        <small class="text-muted">Столбцы: A - Система, B - Назначение, C - Расход L (м³/ч), D - Длина (м)</small>
                         <input type="file" id="csvFileInput" accept=".xlsx,.xls" style="display: none;">
                     </div>
 
@@ -1169,7 +1169,8 @@
                 const riser = calculateRiserData(s.flow, section, s.startFloor);
                 return riser.riserSurface;
             }
-            return (s.perimeter || 0) * getRouteLength(s.startFloor || 1);
+            const routeLen = s.routeLength || getRouteLength(s.startFloor || 1);
+            return (s.perimeter || 0) * routeLen;
         }
 
         // Расчет сечения: S = L / (3600 * v)
@@ -1238,16 +1239,20 @@
                 const purpose = String(row[1] || '').trim();
                 // Столбец C - Расход L
                 const flow = cleanNumber(row[2]);
+                // Столбец D - Длина трассы (м)
+                const rawLength = row[3] !== undefined ? cleanNumber(row[3]) : 0;
 
                 if (!system && !flow) continue;
 
                 const section = getSection(purpose);
                 const ductParams = calculateDuctParams(flow, section);
+                const routeLength = rawLength > 0 ? rawLength : getRouteLength(1);
 
                 systemsData[section].push({
                     system,
                     purpose,
                     flow,
+                    routeLength,
                     startFloor: 1,
                     ...ductParams
                 });
@@ -1285,12 +1290,11 @@
 
         function renderTableRows(systems, section) {
             return systems.map(({ s, idx }) => {
-                const startFloor = s.startFloor || 1;
-                const routeLength = getRouteLength(startFloor);
+                const routeLength = s.routeLength || getRouteLength(s.startFloor || 1);
 
                 // Для "Прочих систем" — расчёт стояка с нарастанием расхода по этажам
                 if (section === 'other') {
-                    const riser = calculateRiserData(s.flow, section, startFloor);
+                    const riser = calculateRiserData(s.flow, section, s.startFloor);
                     return `
                     <tr>
                         <td>${s.system}</td>
@@ -1305,17 +1309,12 @@
                         <td><strong style="font-size:0.8em;">${riser.sectionDisplay}</strong></td>
                         <td>${riser.perimeterMax.toFixed(2)}</td>
                         <td>
-                            <div class="d-flex align-items-center gap-1">
-                                <span class="text-muted" style="font-size:0.75em; white-space:nowrap;">с</span>
-                                <input type="number" class="flow-input" style="width:50px;"
-                                    value="${startFloor}"
-                                    min="1"
-                                    data-section="${section}"
-                                    data-index="${idx}"
-                                    onchange="updateStartFloor(this)">
-                                <span class="text-muted" style="font-size:0.75em; white-space:nowrap;">эт.</span>
-                                <strong>${routeLength.toFixed(1)}</strong>
-                            </div>
+                            <input type="number" class="flow-input" style="width:75px;"
+                                value="${routeLength}"
+                                min="0" step="0.1"
+                                data-section="${section}"
+                                data-index="${idx}"
+                                onchange="updateRouteLength(this)">
                         </td>
                         <td><strong>${riser.riserSurface.toFixed(2)}</strong></td>
                     </tr>`;
@@ -1336,17 +1335,12 @@
                     <td><strong>${s.sectionDisplay}</strong></td>
                     <td>${s.perimeter.toFixed(2)}</td>
                     <td>
-                        <div class="d-flex align-items-center gap-1">
-                            <span class="text-muted" style="font-size:0.75em; white-space:nowrap;">с</span>
-                            <input type="number" class="flow-input" style="width:50px;"
-                                value="${startFloor}"
-                                min="1"
-                                data-section="${section}"
-                                data-index="${idx}"
-                                onchange="updateStartFloor(this)">
-                            <span class="text-muted" style="font-size:0.75em; white-space:nowrap;">эт.</span>
-                            <strong>${routeLength.toFixed(1)}</strong>
-                        </div>
+                        <input type="number" class="flow-input" style="width:75px;"
+                            value="${routeLength}"
+                            min="0" step="0.1"
+                            data-section="${section}"
+                            data-index="${idx}"
+                            onchange="updateRouteLength(this)">
                     </td>
                     <td><strong>${surfaceArea.toFixed(2)}</strong></td>
                 </tr>`;
@@ -1447,19 +1441,19 @@
         }
         window.updateFlow = updateFlow;
 
-        // Обновление стартового этажа
-        function updateStartFloor(input) {
+        // Обновление длины трассы
+        function updateRouteLength(input) {
             const section = input.dataset.section;
             const index = parseInt(input.dataset.index);
-            const newFloor = Math.max(1, parseInt(input.value) || 1);
+            const newLength = Math.max(0, parseFloat(input.value) || 0);
 
-            systemsData[section][index].startFloor = newFloor;
+            systemsData[section][index].routeLength = newLength;
 
             renderAllTables();
             updateAllStats();
             saveSystemsData();
         }
-        window.updateStartFloor = updateStartFloor;
+        window.updateRouteLength = updateRouteLength;
 
         // Обновление статистики секций
         function updateSectionStats(section, statsId) {
@@ -1482,7 +1476,7 @@
             const totalCount = allSystems.length;
             const totalFlow = allSystems.reduce((sum, s) => sum + s.flow, 0);
             const totalPerimeter = allSystems.reduce((sum, s) => sum + (s.perimeter || 0), 0);
-            const totalRouteLen = allSystems.reduce((sum, s) => sum + getRouteLength(s.startFloor || 1), 0);
+            const totalRouteLen = allSystems.reduce((sum, s) => sum + (s.routeLength || getRouteLength(s.startFloor || 1)), 0);
             // Для "other" используем поэтажный расчёт стояка
             const totalSurface = ['rent', 'residential', 'parking', 'smoke'].reduce((sum, sec) => {
                 return sum + systemsData[sec].reduce((s2, sys) => s2 + getSystemSurface(sys, sec), 0);
@@ -1596,7 +1590,7 @@
                             rows.push(['Системы данного типа не найдены']);
                         } else {
                             group.items.forEach(item => {
-                                const routeLen = getRouteLength(item.startFloor || 1);
+                                const routeLen = item.routeLength || getRouteLength(item.startFloor || 1);
                                 let displaySection, displayPerimeter, surface;
                                 if (section.key === 'other') {
                                     const riser = calculateRiserData(item.flow, section.key, item.startFloor);
