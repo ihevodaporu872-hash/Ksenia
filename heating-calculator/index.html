@@ -1853,6 +1853,9 @@
                     if (z.key === 'apartments') {
                         // Квартиры: только d315 и p1000, крупные сечения → p1000
                         appData.fittings.zonePivots[z.key] = computeFittingsPivot(z.items, GENERAL_ROWS, APT_SIZE_GROUPS, true);
+                    } else if (z.key === 'rent') {
+                        // Аренда: пустая таблица, ручной ввод
+                        appData.fittings.zonePivots[z.key] = computeFittingsPivot([], GENERAL_ROWS);
                     } else {
                         appData.fittings.zonePivots[z.key] = computeFittingsPivot(z.items, GENERAL_ROWS);
                     }
