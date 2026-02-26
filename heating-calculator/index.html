@@ -1802,6 +1802,51 @@
             return html;
         }
 
+        // Таблица для зоны аренды: НО/p1000 подсвечена (авто из транзитов)
+        function buildRentPivotTable(pivot) {
+            const rentCount = systemsData.rent.length;
+            let html = `<div class="fittings-table-wrap">
+                <div class="d-flex align-items-center mb-2">
+                    <small class="text-muted" style="font-size:0.78rem;">
+                        <i class="bi bi-link-45deg"></i> Клапан НО (до P=1000) = количество транзитных систем (${rentCount})
+                    </small>
+                </div>
+                <table class="table table-sm table-bordered mb-0" style="font-size:0.85rem;">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width:150px;">Тип арматуры</th>`;
+            SIZE_GROUPS.forEach(sg => {
+                html += `<th style="text-align:center;min-width:85px;">${sg.name}</th>`;
+            });
+            html += `<th style="text-align:center;min-width:70px;font-weight:700;">ИТОГО</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            GENERAL_ROWS.forEach(r => {
+                let rowSum = 0;
+                html += `<tr><td><strong>${r.name}</strong></td>`;
+                SIZE_GROUPS.forEach(sg => {
+                    const val = (pivot[r.key] && pivot[r.key][sg.key]) || 0;
+                    rowSum += val;
+                    const isAuto = (r.key === 'no' && sg.key === 'p1000');
+                    const bgStyle = isAuto ? 'background:rgba(33,150,243,0.10);' : '';
+                    const inputBg = isAuto ? 'background:rgba(33,150,243,0.15);border-color:rgba(33,150,243,0.35);' : '';
+                    html += `<td style="text-align:center;${bgStyle}">
+                        <input type="number" class="form-control form-control-sm text-center"
+                            value="${val}" min="0"
+                            data-group="rent" data-row="${r.key}" data-col="${sg.key}"
+                            oninput="updatePivotCell(this)" style="width:70px;margin:0 auto;${inputBg}">
+                    </td>`;
+                });
+                html += `<td style="text-align:center;font-weight:700;" class="pivot-row-total"
+                    data-group="rent" data-row="${r.key}">${rowSum}</td></tr>`;
+            });
+
+            html += '</tbody></table></div>';
+            return html;
+        }
+
         function getFittingZone(purpose) {
             const p = (purpose || '').toLowerCase();
             if (p.includes('жилье') || p.includes('кв') || p.includes('квартир')) return 'apartments';
@@ -1854,8 +1899,9 @@
                         // Квартиры: только d315 и p1000, крупные сечения → p1000
                         appData.fittings.zonePivots[z.key] = computeFittingsPivot(z.items, GENERAL_ROWS, APT_SIZE_GROUPS, true);
                     } else if (z.key === 'rent') {
-                        // Аренда: пустая таблица, ручной ввод
+                        // Аренда: пустая таблица + НО = кол-во транзитных систем
                         appData.fittings.zonePivots[z.key] = computeFittingsPivot([], GENERAL_ROWS);
+                        appData.fittings.zonePivots[z.key].no.p1000 = systemsData.rent.length;
                     } else {
                         appData.fittings.zonePivots[z.key] = computeFittingsPivot(z.items, GENERAL_ROWS);
                     }
@@ -1994,8 +2040,8 @@
                     html += `</div>`; // закрытие fittingsMopInner
 
                 } else {
-                    // --- Зона аренды: простая таблица ---
-                    html += buildPivotTable(appData.fittings.zonePivots[zone.key] || {}, GENERAL_ROWS, zone.key);
+                    // --- Зона аренды: таблица с подсветкой НО/p1000 ---
+                    html += buildRentPivotTable(appData.fittings.zonePivots[zone.key] || {});
                 }
 
                 html += `</div>
