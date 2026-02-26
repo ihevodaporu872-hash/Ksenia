@@ -1749,7 +1749,12 @@
                 html += `</td>`;
 
                 SIZE_GROUPS.forEach(sg => {
-                    const val = (pivot[r.key] && pivot[r.key][sg.key]) || 0;
+                    let val = (pivot[r.key] && pivot[r.key][sg.key]) || 0;
+                    // Для опциональных: без выбранной модели значение не считается
+                    if (!isBase) {
+                        const selM = (models[r.key] && models[r.key][sg.key]) || '';
+                        if (!selM) val = 0;
+                    }
                     rowSum += val;
 
                     if (isBase) {
@@ -1765,9 +1770,9 @@
                         const catalog = OPT_MODELS[r.key] || {};
                         const modelList = catalog[sg.key] || [];
                         const selModel = (models[r.key] && models[r.key][sg.key]) || '';
-                        const showQty = !!selModel || val > 0;
+                        const hasModel = !!selModel;
 
-                        html += `<td style="text-align:center;">
+                        html += `<td style="text-align:center;vertical-align:middle;">
                             <select class="form-select form-select-sm" style="font-size:0.75rem;padding:2px 20px 2px 4px;"
                                 data-group="apartments" data-row="${r.key}" data-col="${sg.key}"
                                 onchange="updateAptModel(this)">
@@ -1776,16 +1781,20 @@
                             html += `<option value="${m}" ${m === selModel ? 'selected' : ''}>${m}</option>`;
                         });
                         html += `</select>
-                            <div class="apt-model-qty" style="margin-top:2px;${showQty ? '' : 'display:none;'}">
+                            <div class="apt-model-qty" style="margin-top:2px;${hasModel ? '' : 'display:none;'}">
                                 <input type="number" class="form-control form-control-sm text-center"
-                                    value="${val}" min="0"
+                                    value="${hasModel ? val || 1 : 0}" min="0"
                                     data-group="apartments" data-row="${r.key}" data-col="${sg.key}"
-                                    oninput="updatePivotCell(this)" style="width:70px;margin:0 auto;">
-                            </div>`;
+                                    oninput="updatePivotCell(this)" style="width:70px;margin:0 auto;">`;
+                        if (showHints) {
+                            html += `<small class="text-muted apt-hint" data-row="${r.key}" data-col="${sg.key}"
+                                style="display:block;font-size:0.7rem;">${val > 0 ? '(\u0412\u0441\u0435\u0433\u043e: ' + (val * multiplier) + ')' : ''}</small>`;
+                        }
+                        html += `</div>`;
                     }
 
-                    // Подсказка «Всего» (всегда рендерим элемент при multiplier>1)
-                    if (showHints) {
+                    // Подсказка «Всего» для базовых строк
+                    if (isBase && showHints) {
                         html += `<small class="text-muted apt-hint" data-row="${r.key}" data-col="${sg.key}"
                             style="display:block;font-size:0.7rem;">${val > 0 ? '(\u0412\u0441\u0435\u0433\u043e: ' + (val * multiplier) + ')' : ''}</small>`;
                     }
@@ -2174,12 +2183,15 @@
             const qtyInput = qtyDiv ? qtyDiv.querySelector('input') : null;
 
             if (model) {
+                // Показать qty div, установить 1 если было 0
                 if (qtyDiv) qtyDiv.style.display = '';
-                if (qtyInput && (parseInt(qtyInput.value) || 0) === 0) {
-                    qtyInput.value = 1;
+                if (qtyInput) {
+                    const cur = parseInt(qtyInput.value) || 0;
+                    if (cur === 0) qtyInput.value = 1;
                     updatePivotCell(qtyInput);
                 }
             } else {
+                // Сброс: обнулить и скрыть
                 if (qtyInput) {
                     qtyInput.value = 0;
                     updatePivotCell(qtyInput);
