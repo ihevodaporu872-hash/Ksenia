@@ -830,7 +830,7 @@
                                                         <div class="col-md-6 mb-2">
                                                             <label class="form-label">Площадь воздуховодов (м²)</label>
                                                             <input type="number" class="form-control" id="insSmkEi30Area" min="0" step="0.1" placeholder="0">
-                                                            <small class="text-muted"><i class="bi bi-link-45deg"></i> из итогов противодымки</small>
+                                                            <small class="text-muted"><i class="bi bi-link-45deg"></i> S<sub>ПДВ</sub> × 0.3 — подтянуто из итогов противодымки</small>
                                                         </div>
                                                         <div class="col-md-6 mb-2">
                                                             <label class="form-label">Коэффициент нахлеста</label>
@@ -860,7 +860,7 @@
                                                         <div class="col-md-6 mb-2">
                                                             <label class="form-label">Площадь воздуховодов (м²)</label>
                                                             <input type="number" class="form-control" id="insSmkEi90Area" min="0" step="0.1" placeholder="0">
-                                                            <small class="text-muted"><i class="bi bi-link-45deg"></i> из итогов противодымки</small>
+                                                            <small class="text-muted"><i class="bi bi-link-45deg"></i> S<sub>ПДВ</sub> − S<sub>EI 30-90</sub> (остаток ≈70%) — подтянуто из итогов противодымки</small>
                                                         </div>
                                                         <div class="col-md-6 mb-2">
                                                             <label class="form-label">Коэффициент нахлеста</label>
@@ -2566,12 +2566,16 @@
             const el90 = document.getElementById('insGenEi90Area');
             if (el90) el90.value = ei90Gen.toFixed(2);
 
-            // Противодымка: площадь противодымных воздуховодов
-            const smkArea = (appData.ducts.smkSurface || 0).toFixed(2);
-            ['insSmkEi30Area', 'insSmkEi90Area'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = smkArea;
-            });
+            // Противодымка EI 30-90: S_PDV × 0.3
+            const sPdv = appData.ducts.smkSurface || 0;
+            const ei30Smk = sPdv * 0.3;
+            const elSmk30 = document.getElementById('insSmkEi30Area');
+            if (elSmk30) elSmk30.value = ei30Smk.toFixed(2);
+
+            // Противодымка EI 90-180: S_PDV - S_EI30 (остаток ≈70%)
+            const ei90Smk = sPdv - ei30Smk;
+            const elSmk90 = document.getElementById('insSmkEi90Area');
+            if (elSmk90) elSmk90.value = ei90Smk.toFixed(2);
         }
 
         function calcInsulation(system, eiClass) {
