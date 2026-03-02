@@ -968,6 +968,7 @@
                                                         id="grSmkRect05" min="0" value="0"
                                                         data-group="smk" oninput="updateGrillesTotal('smk')"
                                                         style="width:80px;margin:0 auto;">
+                                                    <small class="text-muted" style="font-size:0.72rem;"><i class="bi bi-link-45deg"></i> рассчитано по количеству клапанов</small>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -977,6 +978,7 @@
                                                         id="grSmkRect10" min="0" value="0"
                                                         data-group="smk" oninput="updateGrillesTotal('smk')"
                                                         style="width:80px;margin:0 auto;">
+                                                    <small class="text-muted" style="font-size:0.72rem;"><i class="bi bi-link-45deg"></i> рассчитано по количеству клапанов</small>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -2528,6 +2530,8 @@
 
             if (group === 'smokeTypical' || group === 'smokeNontypical') {
                 refreshSmokeHeaders();
+                // Мгновенное обновление решеток противодымки
+                if (document.getElementById('grSmkRect05')) syncSmokeGrillesFromFittings();
             } else if (group === 'mop' || group === 'mopNontypical') {
                 refreshMopHeaders();
                 refreshGeneralHeader();
@@ -2756,12 +2760,12 @@
         // Автозаполнение решеток при переключении на вкладку
         document.getElementById('grilles-tab').addEventListener('shown.bs.tab', () => {
             syncGrillesFromDucts();
+            syncSmokeGrillesFromFittings();
         });
 
         function syncGrillesFromDucts() {
             // Если пользователь уже ввёл значения (из localStorage), не перезаписываем
-            if (appData.grilles && (appData.grilles.grGenCirc250 || appData.grilles.grGenRect05
-                || appData.grilles.grSmkRect05 || appData.grilles.grSmkRect10)) return;
+            if (appData.grilles && (appData.grilles.grGenCirc250 || appData.grilles.grGenRect05)) return;
 
             // Общеобменка: 1 решетка на каждую систему
             const genSections = ['rent', 'residential', 'parking', 'other'];
@@ -2774,18 +2778,32 @@
             });
             document.getElementById('grGenCirc250').value = circ250;
             document.getElementById('grGenRect05').value = rect05;
-
-            // Противодымка: 1 решетка на каждую систему
-            let smkRect05 = 0, smkRect10 = 0;
-            systemsData.smoke.forEach(s => {
-                const area = s.sectionArea || 0;
-                if (area <= 0.5) smkRect05++;
-                else smkRect10++;
-            });
-            document.getElementById('grSmkRect05').value = smkRect05;
-            document.getElementById('grSmkRect10').value = smkRect10;
-
             updateGrillesTotal('gen');
+        }
+
+        // Решетки противодымки = сумма клапанов НЗ+ДУ из арматуры (типовой × этажи + нетиповой)
+        function syncSmokeGrillesFromFittings() {
+            const smokeFloors = appData.fittings.smokeFloors || 1;
+            const typPivot = appData.fittings.smokeTypicalPivot || {};
+            const nonPivot = appData.fittings.smokeNontypicalPivot || {};
+            const baseKeys = ['nz', 'du']; // Клапан НЗ + Клапан ДУ
+            const smallCols = ['d315', 'p1000', 'p1600', 'p2400'];
+            const largeCols = ['p3600'];
+
+            let rect05 = 0, rect10 = 0;
+            baseKeys.forEach(rk => {
+                // Типовой × этажи
+                smallCols.forEach(c => { rect05 += ((typPivot[rk] && typPivot[rk][c]) || 0) * smokeFloors; });
+                largeCols.forEach(c => { rect10 += ((typPivot[rk] && typPivot[rk][c]) || 0) * smokeFloors; });
+                // Нетиповой ×1
+                smallCols.forEach(c => { rect05 += (nonPivot[rk] && nonPivot[rk][c]) || 0; });
+                largeCols.forEach(c => { rect10 += (nonPivot[rk] && nonPivot[rk][c]) || 0; });
+            });
+
+            const el05 = document.getElementById('grSmkRect05');
+            const el10 = document.getElementById('grSmkRect10');
+            if (el05) el05.value = rect05;
+            if (el10) el10.value = rect10;
             updateGrillesTotal('smk');
         }
 
