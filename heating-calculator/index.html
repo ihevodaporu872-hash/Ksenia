@@ -166,6 +166,14 @@
             margin-top: 15px;
         }
 
+        .total-row-smoke {
+            background: linear-gradient(135deg, #ef5350 0%, #b71c1c 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
         .info-badge {
             background: #e7f1ff;
             color: #667eea;
@@ -621,28 +629,64 @@
                         </div>
                     </div>
 
-                    <!-- Общий итог -->
-                    <div class="total-row mt-3">
-                        <div class="row">
-                            <div class="col text-center">
-                                <small>Всего систем</small>
-                                <div class="fs-5" id="totalSystems">0</div>
+                    <!-- Итоги по типам вентиляции -->
+                    <div class="row mt-3">
+                        <div class="col-lg-6 mb-2">
+                            <div class="total-row" style="height:100%;">
+                                <div class="text-center mb-2" style="font-size:0.9rem;">
+                                    <i class="bi bi-wind me-1"></i><strong>Итоги (Общеобменная)</strong>
+                                </div>
+                                <div class="d-flex flex-wrap justify-content-around text-center">
+                                    <div class="px-2 mb-1">
+                                        <small style="font-size:0.75rem;">Систем</small>
+                                        <div class="fw-bold" id="genSystems">0</div>
+                                    </div>
+                                    <div class="px-2 mb-1">
+                                        <small style="font-size:0.75rem;">Расход</small>
+                                        <div class="fw-bold" id="genFlow">0 м³/ч</div>
+                                    </div>
+                                    <div class="px-2 mb-1">
+                                        <small style="font-size:0.75rem;">Периметр</small>
+                                        <div class="fw-bold" id="genPerimeter">0 м</div>
+                                    </div>
+                                    <div class="px-2 mb-1">
+                                        <small style="font-size:0.75rem;">Длина трасс</small>
+                                        <div class="fw-bold" id="genRouteLen">0 м</div>
+                                    </div>
+                                    <div class="px-2 mb-1">
+                                        <small style="font-size:0.75rem;">Площадь S</small>
+                                        <div class="fw-bold" id="genSurface">0 м²</div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col text-center">
-                                <small>Общий расход</small>
-                                <div class="fs-5" id="totalFlow">0 м³/ч</div>
-                            </div>
-                            <div class="col text-center">
-                                <small>Общий периметр</small>
-                                <div class="fs-5" id="totalSection">0 м</div>
-                            </div>
-                            <div class="col text-center">
-                                <small>Общая длина трасс</small>
-                                <div class="fs-5" id="totalRouteLength">0 м</div>
-                            </div>
-                            <div class="col text-center">
-                                <small>Общая площадь S</small>
-                                <div class="fs-5" id="totalSurface">0 м²</div>
+                        </div>
+                        <div class="col-lg-6 mb-2">
+                            <div class="total-row-smoke" style="height:100%;">
+                                <div class="text-center mb-2" style="font-size:0.9rem;">
+                                    <i class="bi bi-shield-fill me-1"></i><strong>Итоги (Противодымная)</strong>
+                                </div>
+                                <div class="d-flex flex-wrap justify-content-around text-center">
+                                    <div class="px-2 mb-1">
+                                        <small style="font-size:0.75rem;">Систем</small>
+                                        <div class="fw-bold" id="smokeTotalSystems">0</div>
+                                    </div>
+                                    <div class="px-2 mb-1">
+                                        <small style="font-size:0.75rem;">Расход</small>
+                                        <div class="fw-bold" id="smokeTotalFlow">0 м³/ч</div>
+                                    </div>
+                                    <div class="px-2 mb-1">
+                                        <small style="font-size:0.75rem;">Периметр</small>
+                                        <div class="fw-bold" id="smokeTotalPerimeter">0 м</div>
+                                    </div>
+                                    <div class="px-2 mb-1">
+                                        <small style="font-size:0.75rem;">Длина трасс</small>
+                                        <div class="fw-bold" id="smokeTotalRouteLen">0 м</div>
+                                    </div>
+                                    <div class="px-2 mb-1">
+                                        <small style="font-size:0.75rem;">Площадь S</small>
+                                        <div class="fw-bold" id="smokeTotalSurface">0 м²</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1375,27 +1419,40 @@
             updateSectionStats('other', 'otherStats');
             updateSectionStats('smoke', 'smokeStats');
 
-            // Общие итоги
-            const allSystems = [...systemsData.rent, ...systemsData.residential,
-                               ...systemsData.parking, ...systemsData.other, ...systemsData.smoke];
-            const totalCount = allSystems.length;
-            const totalFlow = allSystems.reduce((sum, s) => sum + s.flow, 0);
-            const totalPerimeter = allSystems.reduce((sum, s) => sum + (s.perimeter || 0), 0);
-            const totalRouteLen = allSystems.reduce((sum, s) => sum + (s.routeLength || getRouteLength(s.startFloor || 1)), 0);
-            // Для "other" используем поэтажный расчёт стояка
-            const totalSurface = ['rent', 'residential', 'parking', 'smoke'].reduce((sum, sec) => {
+            // --- Общеобменная (rent + residential + parking + other) ---
+            const genSections = ['rent', 'residential', 'parking', 'other'];
+            const genSystems = genSections.flatMap(s => systemsData[s]);
+            const genCount = genSystems.length;
+            const genFlow = genSystems.reduce((sum, s) => sum + s.flow, 0);
+            const genPerimeter = genSystems.reduce((sum, s) => sum + (s.perimeter || 0), 0);
+            const genRouteLen = genSystems.reduce((sum, s) => sum + (s.routeLength || getRouteLength(s.startFloor || 1)), 0);
+            const genSurface = ['rent', 'residential', 'parking'].reduce((sum, sec) => {
                 return sum + systemsData[sec].reduce((s2, sys) => s2 + getSystemSurface(sys, sec), 0);
             }, 0) + systemsData.other.reduce((sum, sys) => sum + getSystemSurface(sys, 'other'), 0);
 
-            document.getElementById('totalSystems').textContent = totalCount;
-            document.getElementById('totalFlow').textContent = `${totalFlow.toLocaleString()} м³/ч`;
-            document.getElementById('totalSection').textContent = `${totalPerimeter.toFixed(2)} м`;
-            document.getElementById('totalRouteLength').textContent = `${totalRouteLen.toFixed(1)} м`;
-            document.getElementById('totalSurface').textContent = `${totalSurface.toFixed(2)} м²`;
+            document.getElementById('genSystems').textContent = genCount;
+            document.getElementById('genFlow').textContent = `${genFlow.toLocaleString()} м³/ч`;
+            document.getElementById('genPerimeter').textContent = `${genPerimeter.toFixed(2)} м`;
+            document.getElementById('genRouteLen').textContent = `${genRouteLen.toFixed(1)} м`;
+            document.getElementById('genSurface').textContent = `${genSurface.toFixed(2)} м²`;
 
-            // Сохраняем в appData для других вкладок
-            appData.ducts.surface = totalPerimeter;
-            appData.ducts.totalFlow = totalFlow;
+            // --- Противодымная (smoke) ---
+            const smkSystems = systemsData.smoke;
+            const smkCount = smkSystems.length;
+            const smkFlow = smkSystems.reduce((sum, s) => sum + s.flow, 0);
+            const smkPerimeter = smkSystems.reduce((sum, s) => sum + (s.perimeter || 0), 0);
+            const smkRouteLen = smkSystems.reduce((sum, s) => sum + (s.routeLength || getRouteLength(s.startFloor || 1)), 0);
+            const smkSurface = smkSystems.reduce((sum, sys) => sum + getSystemSurface(sys, 'smoke'), 0);
+
+            document.getElementById('smokeTotalSystems').textContent = smkCount;
+            document.getElementById('smokeTotalFlow').textContent = `${smkFlow.toLocaleString()} м³/ч`;
+            document.getElementById('smokeTotalPerimeter').textContent = `${smkPerimeter.toFixed(2)} м`;
+            document.getElementById('smokeTotalRouteLen').textContent = `${smkRouteLen.toFixed(1)} м`;
+            document.getElementById('smokeTotalSurface').textContent = `${smkSurface.toFixed(2)} м²`;
+
+            // Сохраняем в appData для других вкладок (общие суммы)
+            appData.ducts.surface = genPerimeter + smkPerimeter;
+            appData.ducts.totalFlow = genFlow + smkFlow;
             appData.ducts.systemsData = systemsData;
             saveData();
         }
