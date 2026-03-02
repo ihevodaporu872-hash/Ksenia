@@ -734,29 +734,6 @@
                             <div id="insGeneral" class="accordion-collapse collapse show"
                                 data-bs-parent="#insulationAccordion">
                                 <div class="accordion-body p-2">
-                                    <div class="row mb-3">
-                                        <div class="col-md-6 mb-2">
-                                            <label class="form-label"><i class="bi bi-box-seam me-1"></i>Тип утеплителя</label>
-                                            <select class="form-select" id="insGenType">
-                                                <option value="25" selected>Минеральная вата (25 кг/м³)</option>
-                                                <option value="40">Минеральная вата (40 кг/м³)</option>
-                                                <option value="35">Вспененный каучук (35 кг/м³)</option>
-                                                <option value="30">Вспененный полиэтилен (30 кг/м³)</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6 mb-2">
-                                            <label class="form-label"><i class="bi bi-rulers me-1"></i>Толщина изоляции (мм)</label>
-                                            <select class="form-select" id="insGenThickness">
-                                                <option value="25">25 мм</option>
-                                                <option value="30">30 мм</option>
-                                                <option value="40">40 мм</option>
-                                                <option value="50" selected>50 мм</option>
-                                                <option value="80">80 мм</option>
-                                                <option value="100">100 мм</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
                                     <div class="accordion" id="insGenInner">
                                         <!-- EI 30-90 -->
                                         <div class="accordion-item">
@@ -1021,9 +998,7 @@
             // Арматура
             renderFittingsTab();
 
-            // Изоляция: восстановить настройки
-            if (appData.insulation.genType) document.getElementById('insGenType').value = appData.insulation.genType;
-            if (appData.insulation.genThickness) document.getElementById('insGenThickness').value = appData.insulation.genThickness;
+            // Изоляция: настройки восстанавливаются автоматически при переключении на вкладку
 
             // Решетки
             if (appData.grilles.airFlow) document.getElementById('airFlow').value = appData.grilles.airFlow;
@@ -2549,16 +2524,6 @@
             let html = `<div class="result-item"><span>Площадь с учётом нахлеста:</span><span>${withOverlap.toFixed(2)} м\u00b2</span></div>`;
             html += `<div class="result-item"><span>Кол-во рулонов (5 м\u00b2/рулон):</span><span>${rolls} шт.</span></div>`;
 
-            // Для общеобменной — объём и масса утеплителя
-            if (system === 'Gen') {
-                const thickness = parseFloat(document.getElementById('insGenThickness').value) || 50;
-                const density = parseFloat(document.getElementById('insGenType').value) || 25;
-                const volume = withOverlap * (thickness / 1000);
-                const mass = volume * density;
-                html += `<div class="result-item"><span>Объём утеплителя:</span><span>${volume.toFixed(3)} м\u00b3</span></div>`;
-                html += `<div class="result-item"><span>Масса утеплителя:</span><span>${mass.toFixed(2)} кг</span></div>`;
-            }
-
             const resultEl = document.getElementById(`${prefix}Result`);
             resultEl.innerHTML = html;
             resultEl.style.display = 'block';
@@ -2569,15 +2534,6 @@
             saveData();
         }
         window.calcInsulation = calcInsulation;
-
-        // Сохранение настроек утеплителя при изменении
-        ['insGenType', 'insGenThickness'].forEach(id => {
-            document.getElementById(id).addEventListener('change', () => {
-                appData.insulation.genType = document.getElementById('insGenType').value;
-                appData.insulation.genThickness = document.getElementById('insGenThickness').value;
-                saveData();
-            });
-        });
 
         // === РЕШЕТКИ ===
         document.getElementById('grillesForm').addEventListener('submit', (e) => {
