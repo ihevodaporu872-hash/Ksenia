@@ -1002,108 +1002,160 @@
 
                 <!-- Вкладка: Смета -->
                 <div class="tab-pane fade" id="estimate" role="tabpanel">
+                    <style>
+                        .est-thead th { background:#2b2d42; color:#fff; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.5px; padding:8px 6px; text-align:center; vertical-align:middle; border-color:#3d3f56; }
+                        .est-table { font-size:0.84rem; border-color:#dee2e6; }
+                        .est-table tbody tr:nth-child(odd) { background:#f8f9fa; }
+                        .est-table tbody tr:nth-child(even) { background:#fff; }
+                        .est-table td { vertical-align:middle; padding:6px 8px; }
+                        .est-type-work { color:#0d6efd; font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+                        .est-type-mat { color:#198754; font-weight:600; font-size:0.72rem; text-transform:uppercase; }
+                        .est-qty { font-weight:700; }
+                        .est-total-cell { font-weight:700; color:#2b2d42; }
+                        .est-price-input { width:100px; margin:0 auto; border-color:#adb5bd; }
+                        .est-section-total { background:linear-gradient(135deg,#e9ecef 0%,#dee2e6 100%); font-weight:700; font-size:0.9rem; }
+                        .est-section-total td { padding:10px 8px; }
+                    </style>
                     <div class="accordion" id="estimateAccordion">
 
-                        <!-- Противодымная вентиляция (Работы) -->
+                        <!-- Противодымная вентиляция -->
                         <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button" type="button"
                                     data-bs-toggle="collapse" data-bs-target="#estSmoke">
                                     <i class="bi bi-shield-exclamation me-2 text-danger"></i>
-                                    <span>Противодымная вентиляция (Работы)</span>
+                                    <span>Противодымная вентиляция</span>
+                                    <span class="ms-auto me-3 fw-bold" style="color:#6c757d;font-size:0.85em;" id="estSmokeSectionTotal"></span>
                                 </button>
                             </h2>
                             <div id="estSmoke" class="accordion-collapse collapse show"
                                 data-bs-parent="#estimateAccordion">
                                 <div class="accordion-body p-2">
-                                    <table class="table table-sm table-bordered mb-0" style="font-size:0.85rem;">
-                                        <thead class="table-light">
+                                    <div class="table-responsive">
+                                    <table class="table table-sm table-bordered est-table mb-0">
+                                        <thead class="est-thead">
                                             <tr>
-                                                <th style="width:5%;">#</th>
-                                                <th style="width:60%;">Наименование работ / материалов</th>
-                                                <th style="width:15%;text-align:center;">Ед. изм.</th>
-                                                <th style="width:20%;text-align:center;">Количество</th>
+                                                <th style="width:7%;">Тип</th>
+                                                <th style="width:33%;text-align:left;">Наименование</th>
+                                                <th style="width:8%;">Ед. изм.</th>
+                                                <th style="width:13%;">Кол-во</th>
+                                                <th style="width:17%;">Цена за ед. (руб.)</th>
+                                                <th style="width:17%;">Итого (руб.)</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <tr><td>1</td><td>Установка вентиляторов</td><td class="text-center">шт.</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkFans" min="0" value="0" style="width:90px;margin:0 auto;"></td></tr>
-                                            <tr><td>2</td><td>Монтаж воздуховодов толщ. 1,0 мм</td><td class="text-center">м²</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkDucts" min="0" step="0.01" value="0" style="width:90px;margin:0 auto;">
-                                                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-link-45deg"></i> из воздуховодов</small></td></tr>
-                                            <tr><td>3</td><td>Огнезащита базальтовым материалом EI 30–90</td><td class="text-center">м²</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkEi30" min="0" step="0.01" value="0" style="width:90px;margin:0 auto;">
-                                                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-link-45deg"></i> из изоляции</small></td></tr>
-                                            <tr><td>4</td><td>Огнезащита базальтовым материалом EI 90–180</td><td class="text-center">м²</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkEi90" min="0" step="0.01" value="0" style="width:90px;margin:0 auto;">
-                                                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-link-45deg"></i> из изоляции</small></td></tr>
-                                            <tr><td>5</td><td>Монтаж воздуховодов окожушивание</td><td class="text-center">м²</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkCladding" min="0" step="0.01" value="0" style="width:90px;margin:0 auto;"></td></tr>
-                                            <tr><td>6</td><td>Установка компенсаторов</td><td class="text-center">шт.</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkCompensators" min="0" value="0" style="width:90px;margin:0 auto;"></td></tr>
-                                            <tr><td>7</td><td>Установка клапанов с электроприводом</td><td class="text-center">шт.</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkValves" min="0" value="0" style="width:90px;margin:0 auto;">
-                                                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-link-45deg"></i> из арматуры</small></td></tr>
-                                            <tr><td>8</td><td>ПНР Системы вентиляции</td><td class="text-center">шт.</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkPnr" min="0" value="0" style="width:90px;margin:0 auto;"></td></tr>
-                                            <tr><td>9</td><td>Установка решеток на противодымную вентиляцию</td><td class="text-center">шт.</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkGrilles" min="0" value="0" style="width:90px;margin:0 auto;">
-                                                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-link-45deg"></i> из решеток</small></td></tr>
+                                        <tbody data-section="smk">
+                                            <tr><td class="est-type-work text-center">работа</td><td>Установка вентиляторов</td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkFans" min="0" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkFans" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estSmkFans">0</td></tr>
+                                            <tr><td class="est-type-work text-center">работа</td><td>Монтаж воздуховодов толщ. 1,0 мм<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из воздуховодов</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkDucts" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkDucts" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estSmkDucts">0</td></tr>
+                                            <tr><td class="est-type-mat text-center">материал</td><td>Огнезащита базальтовым материалом EI 30–90<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из изоляции</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkEi30" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkEi30" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estSmkEi30">0</td></tr>
+                                            <tr><td class="est-type-mat text-center">материал</td><td>Огнезащита базальтовым материалом EI 90–180<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из изоляции</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkEi90" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkEi90" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estSmkEi90">0</td></tr>
+                                            <tr><td class="est-type-work text-center">работа</td><td>Монтаж воздуховодов окожушивание</td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkCladding" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkCladding" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estSmkCladding">0</td></tr>
+                                            <tr><td class="est-type-mat text-center">материал</td><td>Установка компенсаторов</td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkCompensators" min="0" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkCompensators" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estSmkCompensators">0</td></tr>
+                                            <tr><td class="est-type-work text-center">работа</td><td>Установка клапанов с электроприводом<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из арматуры</small></td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkValves" min="0" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkValves" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estSmkValves">0</td></tr>
+                                            <tr><td class="est-type-work text-center">работа</td><td>ПНР Системы вентиляции</td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkPnr" min="0" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkPnr" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estSmkPnr">0</td></tr>
+                                            <tr><td class="est-type-work text-center">работа</td><td>Установка решеток на противодымную вентиляцию<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из решеток</small></td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkGrilles" min="0" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkGrilles" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estSmkGrilles">0</td></tr>
+                                            <tr class="est-section-total"><td colspan="5" class="text-end">ИТОГО ПО РАЗДЕЛУ:</td>
+                                                <td class="text-center" id="estSmkSectionSum">0</td></tr>
                                         </tbody>
                                     </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Общеобменная система (Работы) -->
+                        <!-- Общеобменная система -->
                         <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button"
                                     data-bs-toggle="collapse" data-bs-target="#estGeneral">
                                     <i class="bi bi-wind me-2"></i>
-                                    <span>Общеобменная система (Работы)</span>
+                                    <span>Общеобменная система</span>
+                                    <span class="ms-auto me-3 fw-bold" style="color:#6c757d;font-size:0.85em;" id="estGenSectionTotal"></span>
                                 </button>
                             </h2>
                             <div id="estGeneral" class="accordion-collapse collapse"
                                 data-bs-parent="#estimateAccordion">
                                 <div class="accordion-body p-2">
-                                    <table class="table table-sm table-bordered mb-0" style="font-size:0.85rem;">
-                                        <thead class="table-light">
+                                    <div class="table-responsive">
+                                    <table class="table table-sm table-bordered est-table mb-0">
+                                        <thead class="est-thead">
                                             <tr>
-                                                <th style="width:5%;">#</th>
-                                                <th style="width:60%;">Наименование работ / материалов</th>
-                                                <th style="width:15%;text-align:center;">Ед. изм.</th>
-                                                <th style="width:20%;text-align:center;">Количество</th>
+                                                <th style="width:7%;">Тип</th>
+                                                <th style="width:33%;text-align:left;">Наименование</th>
+                                                <th style="width:8%;">Ед. изм.</th>
+                                                <th style="width:13%;">Кол-во</th>
+                                                <th style="width:17%;">Цена за ед. (руб.)</th>
+                                                <th style="width:17%;">Итого (руб.)</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <tr><td>1</td><td>Установка оборудования приточно-вытяжной вентиляции</td><td class="text-center">компл.</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEquipment" min="0" value="0" style="width:90px;margin:0 auto;"></td></tr>
-                                            <tr><td>2</td><td>Огнезащита базальтовым материалом EI 30–90</td><td class="text-center">м²</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEi30" min="0" step="0.01" value="0" style="width:90px;margin:0 auto;">
-                                                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-link-45deg"></i> из изоляции</small></td></tr>
-                                            <tr><td>3</td><td>Монтаж воздуховодов толщ. 0,8 мм и 1,0 мм</td><td class="text-center">м²</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDucts" min="0" step="0.01" value="0" style="width:90px;margin:0 auto;">
-                                                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-link-45deg"></i> из воздуховодов</small></td></tr>
-                                            <tr><td>4</td><td>Огнезащита базальтовым материалом EI 90–180</td><td class="text-center">м²</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEi90" min="0" step="0.01" value="0" style="width:90px;margin:0 auto;">
-                                                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-link-45deg"></i> из изоляции</small></td></tr>
-                                            <tr><td>5</td><td>Установка шумоглушителей</td><td class="text-center">шт.</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenShg" min="0" value="0" style="width:90px;margin:0 auto;">
-                                                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-link-45deg"></i> из арматуры</small></td></tr>
-                                            <tr><td>6</td><td>Установка обратных и ручных клапанов</td><td class="text-center">шт.</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDkNo" min="0" value="0" style="width:90px;margin:0 auto;">
-                                                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-link-45deg"></i> ДК + НО из арматуры</small></td></tr>
-                                            <tr><td>7</td><td>Установка клапанов с электроприводом</td><td class="text-center">шт.</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenNoValves" min="0" value="0" style="width:90px;margin:0 auto;">
-                                                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-link-45deg"></i> клапаны НО из арматуры</small></td></tr>
-                                            <tr><td>8</td><td>ПНР Системы вентиляции</td><td class="text-center">шт.</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenPnr" min="0" value="0" style="width:90px;margin:0 auto;"></td></tr>
-                                            <tr><td>9</td><td>Установка решеток</td><td class="text-center">шт.</td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenGrilles" min="0" value="0" style="width:90px;margin:0 auto;">
-                                                <small class="text-muted" style="font-size:0.7rem;"><i class="bi bi-link-45deg"></i> из решеток</small></td></tr>
+                                        <tbody data-section="gen">
+                                            <tr><td class="est-type-work text-center">работа</td><td>Установка оборудования приточно-вытяжной вентиляции</td><td class="text-center">компл.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEquipment" min="0" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenEquipment" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estGenEquipment">0</td></tr>
+                                            <tr><td class="est-type-mat text-center">материал</td><td>Огнезащита базальтовым материалом EI 30–90<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из изоляции</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEi30" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenEi30" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estGenEi30">0</td></tr>
+                                            <tr><td class="est-type-work text-center">работа</td><td>Монтаж воздуховодов толщ. 0,8 мм и 1,0 мм<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из воздуховодов</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDucts" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenDucts" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estGenDucts">0</td></tr>
+                                            <tr><td class="est-type-mat text-center">материал</td><td>Огнезащита базальтовым материалом EI 90–180<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из изоляции</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEi90" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenEi90" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estGenEi90">0</td></tr>
+                                            <tr><td class="est-type-work text-center">работа</td><td>Установка шумоглушителей<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из арматуры</small></td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenShg" min="0" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenShg" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estGenShg">0</td></tr>
+                                            <tr><td class="est-type-work text-center">работа</td><td>Установка обратных и ручных клапанов<br><small class="text-muted"><i class="bi bi-link-45deg"></i> ДК из арматуры</small></td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDkNo" min="0" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenDkNo" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estGenDkNo">0</td></tr>
+                                            <tr><td class="est-type-work text-center">работа</td><td>Установка клапанов с электроприводом<br><small class="text-muted"><i class="bi bi-link-45deg"></i> клапаны НО из арматуры</small></td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenNoValves" min="0" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenNoValves" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estGenNoValves">0</td></tr>
+                                            <tr><td class="est-type-work text-center">работа</td><td>ПНР Системы вентиляции</td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenPnr" min="0" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenPnr" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estGenPnr">0</td></tr>
+                                            <tr><td class="est-type-work text-center">работа</td><td>Установка решеток<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из решеток</small></td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenGrilles" min="0" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenGrilles" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estGenGrilles">0</td></tr>
+                                            <tr class="est-section-total"><td colspan="5" class="text-end">ИТОГО ПО РАЗДЕЛУ:</td>
+                                                <td class="text-center" id="estGenSectionSum">0</td></tr>
                                         </tbody>
                                     </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2960,51 +3012,75 @@
 
         function syncEstimateData() {
             // --- Противодымка ---
-            // Монтаж воздуховодов: площадь из воздуховодов
-            const smkSurface = appData.ducts.smkSurface || 0;
-            setEstVal('estSmkDucts', smkSurface.toFixed(2));
-
-            // Огнезащита EI 30-90 и 90-180: из полей изоляции
+            setEstVal('estSmkDucts', (appData.ducts.smkSurface || 0).toFixed(2));
             setEstVal('estSmkEi30', (parseFloat(document.getElementById('insSmkEi30Area')?.value) || 0).toFixed(2));
             setEstVal('estSmkEi90', (parseFloat(document.getElementById('insSmkEi90Area')?.value) || 0).toFixed(2));
-
-            // Клапаны с электроприводом: сумма НЗ + ДУ из арматуры
-            const smkTotal = calcSmokeTotal();
-            setEstVal('estSmkValves', smkTotal.count);
-
-            // Решетки: из вкладки решеток
-            const smkGrilles = (appData.grilles?.grSmkRect05 || 0) + (appData.grilles?.grSmkRect10 || 0);
-            setEstVal('estSmkGrilles', smkGrilles);
+            setEstVal('estSmkValves', calcSmokeTotal().count);
+            setEstVal('estSmkGrilles', (appData.grilles?.grSmkRect05 || 0) + (appData.grilles?.grSmkRect10 || 0));
 
             // --- Общеобменка ---
-            // Огнезащита EI 30-90 и 90-180: из полей изоляции
             setEstVal('estGenEi30', (parseFloat(document.getElementById('insGenEi30Area')?.value) || 0).toFixed(2));
             setEstVal('estGenEi90', (parseFloat(document.getElementById('insGenEi90Area')?.value) || 0).toFixed(2));
+            setEstVal('estGenDucts', (appData.ducts.genSurface || 0).toFixed(2));
+            setEstVal('estGenShg', sumFittingRow('shg', true));
+            setEstVal('estGenDkNo', sumFittingRow('dk', true));
+            setEstVal('estGenNoValves', sumFittingRow('no', true));
+            setEstVal('estGenGrilles', (appData.grilles?.grGenCirc250 || 0) + (appData.grilles?.grGenRect05 || 0));
 
-            // Монтаж воздуховодов: площадь из воздуховодов
-            const genSurface = appData.ducts.genSurface || 0;
-            setEstVal('estGenDucts', genSurface.toFixed(2));
-
-            // Шумоглушители: сумма ШГ из всех общеобменных зон
-            const shgCount = sumFittingRow('shg', true);
-            setEstVal('estGenShg', shgCount);
-
-            // Обратные и ручные клапаны: ДК из всех общеобменных зон
-            const dkCount = sumFittingRow('dk', true);
-            setEstVal('estGenDkNo', dkCount);
-
-            // Клапаны НО с электроприводом
-            const noCount = sumFittingRow('no', true);
-            setEstVal('estGenNoValves', noCount);
-
-            // Решетки: из вкладки решеток
-            const genGrilles = (appData.grilles?.grGenCirc250 || 0) + (appData.grilles?.grGenRect05 || 0);
-            setEstVal('estGenGrilles', genGrilles);
+            // Пересчитать все итоги строк и разделов
+            recalcAllEstTotals();
         }
 
         function setEstVal(id, val) {
             const el = document.getElementById(id);
             if (el) el.value = val;
+        }
+
+        function calcEstRow(el) {
+            // Найти пару qty/price для этой строки
+            const tr = el.closest('tr');
+            const qtyInput = tr.querySelector('.est-input');
+            const priceInput = tr.querySelector('.est-price-input');
+            const totalCell = tr.querySelector('.est-total-cell');
+            if (!qtyInput || !priceInput || !totalCell) return;
+
+            const qty = parseFloat(qtyInput.value) || 0;
+            const price = parseFloat(priceInput.value) || 0;
+            const total = qty * price;
+            totalCell.textContent = total > 0 ? total.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0';
+
+            // Пересчитать итог раздела
+            const tbody = tr.closest('tbody');
+            calcEstSectionTotal(tbody);
+        }
+        window.calcEstRow = calcEstRow;
+
+        function calcEstSectionTotal(tbody) {
+            let sectionSum = 0;
+            tbody.querySelectorAll('.est-total-cell').forEach(cell => {
+                const raw = cell.textContent.replace(/\s/g, '').replace(',', '.');
+                sectionSum += parseFloat(raw) || 0;
+            });
+            const section = tbody.dataset.section;
+            const sumEl = document.getElementById(section === 'smk' ? 'estSmkSectionSum' : 'estGenSectionSum');
+            if (sumEl) sumEl.textContent = sectionSum > 0 ? sectionSum.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0';
+
+            const badgeEl = document.getElementById(section === 'smk' ? 'estSmokeSectionTotal' : 'estGenSectionTotal');
+            if (badgeEl) badgeEl.textContent = sectionSum > 0 ? sectionSum.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' руб.' : '';
+        }
+
+        function recalcAllEstTotals() {
+            document.querySelectorAll('.est-table tbody').forEach(tbody => {
+                tbody.querySelectorAll('tr:not(.est-section-total)').forEach(tr => {
+                    const qtyInput = tr.querySelector('.est-input');
+                    const priceInput = tr.querySelector('.est-price-input');
+                    const totalCell = tr.querySelector('.est-total-cell');
+                    if (!qtyInput || !priceInput || !totalCell) return;
+                    const total = (parseFloat(qtyInput.value) || 0) * (parseFloat(priceInput.value) || 0);
+                    totalCell.textContent = total > 0 ? total.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0';
+                });
+                calcEstSectionTotal(tbody);
+            });
         }
 
         // Сумма значений одной строки арматуры по всем общеобменным зонам (с множителями)
@@ -3037,50 +3113,61 @@
         }
 
         function exportEstimateToExcel() {
-            const rows = [
-                ['Смета — Вентиляция'],
-                [],
-                ['Противодымная вентиляция (Работы)'],
-                ['#', 'Наименование работ / материалов', 'Ед. изм.', 'Количество']
-            ];
+            const header = ['Тип', 'Наименование', 'Ед. изм.', 'Кол-во', 'Цена за ед. (руб.)', 'Итого (руб.)'];
+            const rows = [['Смета — Вентиляция'], [], ['Противодымная вентиляция'], header];
+
             const smkItems = [
-                ['Установка вентиляторов', 'шт.', 'estSmkFans'],
-                ['Монтаж воздуховодов толщ. 1,0 мм', 'м²', 'estSmkDucts'],
-                ['Огнезащита базальтовым материалом EI 30–90', 'м²', 'estSmkEi30'],
-                ['Огнезащита базальтовым материалом EI 90–180', 'м²', 'estSmkEi90'],
-                ['Монтаж воздуховодов окожушивание', 'м²', 'estSmkCladding'],
-                ['Установка компенсаторов', 'шт.', 'estSmkCompensators'],
-                ['Установка клапанов с электроприводом', 'шт.', 'estSmkValves'],
-                ['ПНР Системы вентиляции', 'шт.', 'estSmkPnr'],
-                ['Установка решеток на противодымную вентиляцию', 'шт.', 'estSmkGrilles']
+                ['работа', 'Установка вентиляторов', 'шт.', 'estSmkFans'],
+                ['работа', 'Монтаж воздуховодов толщ. 1,0 мм', 'м²', 'estSmkDucts'],
+                ['материал', 'Огнезащита базальтовым материалом EI 30–90', 'м²', 'estSmkEi30'],
+                ['материал', 'Огнезащита базальтовым материалом EI 90–180', 'м²', 'estSmkEi90'],
+                ['работа', 'Монтаж воздуховодов окожушивание', 'м²', 'estSmkCladding'],
+                ['материал', 'Установка компенсаторов', 'шт.', 'estSmkCompensators'],
+                ['работа', 'Установка клапанов с электроприводом', 'шт.', 'estSmkValves'],
+                ['работа', 'ПНР Системы вентиляции', 'шт.', 'estSmkPnr'],
+                ['работа', 'Установка решеток на противодымную вентиляцию', 'шт.', 'estSmkGrilles']
             ];
-            smkItems.forEach((item, i) => {
-                const val = parseFloat(document.getElementById(item[2]).value) || 0;
-                rows.push([i + 1, item[0], item[1], val]);
+            let smkSum = 0;
+            smkItems.forEach(item => {
+                const qty = parseFloat(document.getElementById(item[3]).value) || 0;
+                const priceEl = document.querySelector(`.est-price-input[data-for="${item[3]}"]`);
+                const price = parseFloat(priceEl?.value) || 0;
+                const total = qty * price;
+                smkSum += total;
+                rows.push([item[0], item[1], item[2], qty, price, total]);
             });
+            rows.push(['', '', '', '', 'ИТОГО ПО РАЗДЕЛУ:', smkSum]);
 
             rows.push([]);
-            rows.push(['Общеобменная система (Работы)']);
-            rows.push(['#', 'Наименование работ / материалов', 'Ед. изм.', 'Количество']);
+            rows.push(['Общеобменная система']);
+            rows.push(header);
 
             const genItems = [
-                ['Установка оборудования приточно-вытяжной вентиляции', 'компл.', 'estGenEquipment'],
-                ['Огнезащита базальтовым материалом EI 30–90', 'м²', 'estGenEi30'],
-                ['Монтаж воздуховодов толщ. 0,8 мм и 1,0 мм', 'м²', 'estGenDucts'],
-                ['Огнезащита базальтовым материалом EI 90–180', 'м²', 'estGenEi90'],
-                ['Установка шумоглушителей', 'шт.', 'estGenShg'],
-                ['Установка обратных и ручных клапанов', 'шт.', 'estGenDkNo'],
-                ['Установка клапанов с электроприводом', 'шт.', 'estGenNoValves'],
-                ['ПНР Системы вентиляции', 'шт.', 'estGenPnr'],
-                ['Установка решеток', 'шт.', 'estGenGrilles']
+                ['работа', 'Установка оборудования приточно-вытяжной вентиляции', 'компл.', 'estGenEquipment'],
+                ['материал', 'Огнезащита базальтовым материалом EI 30–90', 'м²', 'estGenEi30'],
+                ['работа', 'Монтаж воздуховодов толщ. 0,8 мм и 1,0 мм', 'м²', 'estGenDucts'],
+                ['материал', 'Огнезащита базальтовым материалом EI 90–180', 'м²', 'estGenEi90'],
+                ['работа', 'Установка шумоглушителей', 'шт.', 'estGenShg'],
+                ['работа', 'Установка обратных и ручных клапанов', 'шт.', 'estGenDkNo'],
+                ['работа', 'Установка клапанов с электроприводом', 'шт.', 'estGenNoValves'],
+                ['работа', 'ПНР Системы вентиляции', 'шт.', 'estGenPnr'],
+                ['работа', 'Установка решеток', 'шт.', 'estGenGrilles']
             ];
-            genItems.forEach((item, i) => {
-                const val = parseFloat(document.getElementById(item[2]).value) || 0;
-                rows.push([i + 1, item[0], item[1], val]);
+            let genSum = 0;
+            genItems.forEach(item => {
+                const qty = parseFloat(document.getElementById(item[3]).value) || 0;
+                const priceEl = document.querySelector(`.est-price-input[data-for="${item[3]}"]`);
+                const price = parseFloat(priceEl?.value) || 0;
+                const total = qty * price;
+                genSum += total;
+                rows.push([item[0], item[1], item[2], qty, price, total]);
             });
+            rows.push(['', '', '', '', 'ИТОГО ПО РАЗДЕЛУ:', genSum]);
+            rows.push([]);
+            rows.push(['', '', '', '', 'ОБЩИЙ ИТОГ:', smkSum + genSum]);
 
             const ws = XLSX.utils.aoa_to_sheet(rows);
-            ws['!cols'] = [{ wch: 4 }, { wch: 50 }, { wch: 10 }, { wch: 15 }];
+            ws['!cols'] = [{ wch: 10 }, { wch: 50 }, { wch: 10 }, { wch: 12 }, { wch: 18 }, { wch: 18 }];
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Смета');
             XLSX.writeFile(wb, 'Смета_вентиляция.xlsx');
