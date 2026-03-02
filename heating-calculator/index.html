@@ -885,65 +885,107 @@
                 <!-- Вкладка: Решетки -->
                 <div class="tab-pane fade" id="grilles" role="tabpanel">
                     <div class="info-badge">
-                        <i class="bi bi-info-circle"></i> Формула: F = L / (3600 × v), где L — расход воздуха (м³/ч), v — скорость (м/с)
+                        <i class="bi bi-info-circle"></i> Учет решеток по типам вентиляции. Количество подтягивается из систем вкладки «Воздуховоды» (1 решетка = 1 система).
                     </div>
 
-                    <form id="grillesForm">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Расход воздуха (м³/ч)</label>
-                                <input type="number" class="form-control" id="airFlow" min="1" placeholder="500">
+                    <div class="accordion" id="grillesAccordion">
+
+                        <!-- Общеобменная вентиляция -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#grillesGeneral">
+                                    <i class="bi bi-wind me-2"></i>
+                                    <span>Общеобменная вентиляция</span>
+                                    <span class="badge bg-primary ms-2" id="grillesGenBadge">0</span>
+                                </button>
+                            </h2>
+                            <div id="grillesGeneral" class="accordion-collapse collapse show"
+                                data-bs-parent="#grillesAccordion">
+                                <div class="accordion-body p-2">
+                                    <table class="table table-sm table-bordered mb-2" style="font-size:0.85rem;">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width:65%;">Тип решетки</th>
+                                                <th style="width:35%;text-align:center;">Кол-во, шт.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Решетки круглого сечения d до 250</td>
+                                                <td style="text-align:center;">
+                                                    <input type="number" class="form-control form-control-sm text-center grille-input"
+                                                        id="grGenCirc250" min="0" value="0"
+                                                        data-group="gen" oninput="updateGrillesTotal('gen')"
+                                                        style="width:80px;margin:0 auto;">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Решетки прямоугольного сечения S до 0,5 м²</td>
+                                                <td style="text-align:center;">
+                                                    <input type="number" class="form-control form-control-sm text-center grille-input"
+                                                        id="grGenRect05" min="0" value="0"
+                                                        data-group="gen" oninput="updateGrillesTotal('gen')"
+                                                        style="width:80px;margin:0 auto;">
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="text-end">
+                                        <strong>Всего решеток: <span id="grillesGenTotal">0</span> шт.</strong>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Рекомендуемая скорость (м/с)</label>
-                                <select class="form-select" id="airVelocity">
-                                    <option value="1.5">1.5 м/с (жилые помещения)</option>
-                                    <option value="2.0" selected>2.0 м/с (офисы)</option>
-                                    <option value="2.5">2.5 м/с (общественные)</option>
-                                    <option value="3.0">3.0 м/с (производство)</option>
-                                    <option value="4.0">4.0 м/с (технические)</option>
-                                </select>
+                        </div>
+
+                        <!-- Противодымная вентиляция -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#grillesSmoke">
+                                    <i class="bi bi-shield-fill me-2 text-danger"></i>
+                                    <span>Противодымная вентиляция</span>
+                                    <span class="badge bg-danger ms-2" id="grillesSmkBadge">0</span>
+                                </button>
+                            </h2>
+                            <div id="grillesSmoke" class="accordion-collapse collapse"
+                                data-bs-parent="#grillesAccordion">
+                                <div class="accordion-body p-2">
+                                    <table class="table table-sm table-bordered mb-2" style="font-size:0.85rem;">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width:65%;">Тип решетки</th>
+                                                <th style="width:35%;text-align:center;">Кол-во, шт.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Решетки прямоугольного сечения S до 0,5 м²</td>
+                                                <td style="text-align:center;">
+                                                    <input type="number" class="form-control form-control-sm text-center grille-input"
+                                                        id="grSmkRect05" min="0" value="0"
+                                                        data-group="smk" oninput="updateGrillesTotal('smk')"
+                                                        style="width:80px;margin:0 auto;">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Решетки прямоугольного сечения S до 1 м²</td>
+                                                <td style="text-align:center;">
+                                                    <input type="number" class="form-control form-control-sm text-center grille-input"
+                                                        id="grSmkRect10" min="0" value="0"
+                                                        data-group="smk" oninput="updateGrillesTotal('smk')"
+                                                        style="width:80px;margin:0 auto;">
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <div class="text-end">
+                                        <strong>Всего решеток: <span id="grillesSmkTotal">0</span> шт.</strong>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Тип решетки</label>
-                            <select class="form-select" id="grilleType">
-                                <option value="0.7" selected>Регулируемая (живое сечение ~70%)</option>
-                                <option value="0.8">Нерегулируемая (живое сечение ~80%)</option>
-                                <option value="0.5">Перфорированная (живое сечение ~50%)</option>
-                                <option value="0.6">Щелевая (живое сечение ~60%)</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Количество решеток</label>
-                            <input type="number" class="form-control" id="grilleCount" value="1" min="1">
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-calculator"></i> Подобрать решетку
-                        </button>
-                    </form>
-
-                    <div id="grillesResult" class="result-card" style="display: none;">
-                        <h5><i class="bi bi-clipboard-data"></i> Рекомендации по решеткам</h5>
-                        <div class="result-item">
-                            <span>Расход на одну решетку:</span>
-                            <span id="flowPerGrille">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span>Живое сечение (мин.):</span>
-                            <span id="liveSection">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span>Полное сечение решетки:</span>
-                            <span id="fullSection">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span>Рекомендуемый размер:</span>
-                            <span id="recommendedSize">-</span>
-                        </div>
                     </div>
                 </div>
 
@@ -1001,10 +1043,12 @@
             // Изоляция: настройки восстанавливаются автоматически при переключении на вкладку
 
             // Решетки
-            if (appData.grilles.airFlow) document.getElementById('airFlow').value = appData.grilles.airFlow;
-            if (appData.grilles.velocity) document.getElementById('airVelocity').value = appData.grilles.velocity;
-            if (appData.grilles.type) document.getElementById('grilleType').value = appData.grilles.type;
-            if (appData.grilles.count) document.getElementById('grilleCount').value = appData.grilles.count;
+            if (appData.grilles.grGenCirc250) document.getElementById('grGenCirc250').value = appData.grilles.grGenCirc250;
+            if (appData.grilles.grGenRect05) document.getElementById('grGenRect05').value = appData.grilles.grGenRect05;
+            if (appData.grilles.grSmkRect05) document.getElementById('grSmkRect05').value = appData.grilles.grSmkRect05;
+            if (appData.grilles.grSmkRect10) document.getElementById('grSmkRect10').value = appData.grilles.grSmkRect10;
+            updateGrillesTotal('gen');
+            updateGrillesTotal('smk');
         }
 
         // === ОСНОВНЫЕ ХАРАКТЕРИСТИКИ ЗДАНИЯ ===
@@ -2536,34 +2580,63 @@
         window.calcInsulation = calcInsulation;
 
         // === РЕШЕТКИ ===
-        document.getElementById('grillesForm').addEventListener('submit', (e) => {
-            e.preventDefault();
+        function updateGrillesTotal(group) {
+            const inputs = document.querySelectorAll(`.grille-input[data-group="${group}"]`);
+            let total = 0;
+            inputs.forEach(inp => { total += parseInt(inp.value) || 0; });
 
-            const airFlow = parseFloat(document.getElementById('airFlow').value) || 0;
-            const velocity = parseFloat(document.getElementById('airVelocity').value);
-            const liveCoef = parseFloat(document.getElementById('grilleType').value);
-            const count = parseInt(document.getElementById('grilleCount').value) || 1;
+            const totalEl = document.getElementById(group === 'gen' ? 'grillesGenTotal' : 'grillesSmkTotal');
+            if (totalEl) totalEl.textContent = total;
 
-            const flowPerGrille = airFlow / count;
-            const liveSection = flowPerGrille / (3600 * velocity); // м²
-            const fullSection = liveSection / liveCoef; // м²
+            const badgeEl = document.getElementById(group === 'gen' ? 'grillesGenBadge' : 'grillesSmkBadge');
+            if (badgeEl) badgeEl.textContent = total;
 
-            // Рекомендуемые размеры (квадратная решетка)
-            const sideSize = Math.sqrt(fullSection) * 1000; // мм
-            const roundedSize = Math.ceil(sideSize / 50) * 50; // округление до 50мм
-
+            // Сохранение
             appData.grilles = {
-                airFlow, velocity, type: liveCoef, count,
-                flowPerGrille, liveSection, fullSection
+                grGenCirc250: parseInt(document.getElementById('grGenCirc250').value) || 0,
+                grGenRect05: parseInt(document.getElementById('grGenRect05').value) || 0,
+                grSmkRect05: parseInt(document.getElementById('grSmkRect05').value) || 0,
+                grSmkRect10: parseInt(document.getElementById('grSmkRect10').value) || 0
             };
             saveData();
+        }
+        window.updateGrillesTotal = updateGrillesTotal;
 
-            document.getElementById('flowPerGrille').textContent = `${flowPerGrille.toFixed(0)} м³/ч`;
-            document.getElementById('liveSection').textContent = `${(liveSection * 10000).toFixed(0)} см² (${(liveSection * 1000000).toFixed(0)} мм²)`;
-            document.getElementById('fullSection').textContent = `${(fullSection * 10000).toFixed(0)} см²`;
-            document.getElementById('recommendedSize').textContent = `${roundedSize}×${roundedSize} мм или эквивалент`;
-            document.getElementById('grillesResult').style.display = 'block';
+        // Автозаполнение решеток при переключении на вкладку
+        document.getElementById('grilles-tab').addEventListener('shown.bs.tab', () => {
+            syncGrillesFromDucts();
         });
+
+        function syncGrillesFromDucts() {
+            // Если пользователь уже ввёл значения (из localStorage), не перезаписываем
+            if (appData.grilles && (appData.grilles.grGenCirc250 || appData.grilles.grGenRect05
+                || appData.grilles.grSmkRect05 || appData.grilles.grSmkRect10)) return;
+
+            // Общеобменка: 1 решетка на каждую систему
+            const genSections = ['rent', 'residential', 'parking', 'other'];
+            let circ250 = 0, rect05 = 0;
+            genSections.forEach(sec => {
+                systemsData[sec].forEach(s => {
+                    if (s.type === 'circular' && (s.diameter || 0) <= 250) circ250++;
+                    else rect05++;
+                });
+            });
+            document.getElementById('grGenCirc250').value = circ250;
+            document.getElementById('grGenRect05').value = rect05;
+
+            // Противодымка: 1 решетка на каждую систему
+            let smkRect05 = 0, smkRect10 = 0;
+            systemsData.smoke.forEach(s => {
+                const area = s.sectionArea || 0;
+                if (area <= 0.5) smkRect05++;
+                else smkRect10++;
+            });
+            document.getElementById('grSmkRect05').value = smkRect05;
+            document.getElementById('grSmkRect10').value = smkRect10;
+
+            updateGrillesTotal('gen');
+            updateGrillesTotal('smk');
+        }
 
         // Инициализация
         loadData();
