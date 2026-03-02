@@ -1299,7 +1299,8 @@
             // Сброс сводных таблиц арматуры для пересчёта
             appData.fittings.zonePivots = null;
             appData.fittings.mopNontypicalPivot = null;
-            appData.fittings.smokePivot = null;
+            appData.fittings.smokeTypicalPivot = null;
+            appData.fittings.smokeNontypicalPivot = null;
             appData.fittings.aptModels = null;
 
             // Пропускаем заголовок если есть (проверяем, является ли третий столбец числом)
@@ -1500,7 +1501,7 @@
             renderSectionContent('other', 'otherContent');
             renderSectionContent('smoke', 'smokeContent');
             if (document.getElementById('fittingsAccordion') &&
-                (!appData.fittings.zonePivots || !appData.fittings.smokePivot || !appData.fittings.mopNontypicalPivot)) {
+                (!appData.fittings.zonePivots || !appData.fittings.smokeTypicalPivot || !appData.fittings.mopNontypicalPivot)) {
                 renderFittingsTab();
             }
         }
@@ -1621,6 +1622,13 @@
         document.getElementById('numFloors').addEventListener('change', () => {
             renderAllTables();
             updateAllStats();
+            // Синхронизация этажей для противодымки
+            const floors = parseInt(document.getElementById('numFloors').value) || 1;
+            if (appData.fittings) {
+                appData.fittings.smokeFloors = floors;
+                renderFittingsTab();
+                saveData();
+            }
         });
         document.getElementById('typicalFloorHeight').addEventListener('change', () => {
             renderAllTables();
@@ -1753,7 +1761,9 @@
 
         const SMOKE_ROWS = [
             { key: 'nz', name: 'Клапан НЗ' },
-            { key: 'du', name: 'Клапан ДУ' }
+            { key: 'du', name: 'Клапан ДУ' },
+            { key: 'shg', name: 'Шумоглушитель' },
+            { key: 'cav', name: 'Клапан CAV' }
         ];
 
         // Каталоги моделей для опциональной арматуры (квартиры)
@@ -2113,6 +2123,13 @@
             return { count: tTyp.count + tNon.count, area: tTyp.area + tNon.area };
         }
 
+        function calcSmokeTotal() {
+            const smokeFloors = appData.fittings.smokeFloors || 1;
+            const tTyp = calcPivotTotal(appData.fittings.smokeTypicalPivot || {}, SMOKE_ROWS, smokeFloors, null, 'smokeTypical');
+            const tNon = calcPivotTotal(appData.fittings.smokeNontypicalPivot || {}, SMOKE_ROWS, 1, null, 'smokeNontypical');
+            return { count: tTyp.count + tNon.count, area: tTyp.area + tNon.area };
+        }
+
         function renderFittingsTab() {
             const accordion = document.getElementById('fittingsAccordion');
             if (!accordion) return;
@@ -2174,8 +2191,19 @@
             if (!appData.fittings.mopNontypicalPivot) {
                 appData.fittings.mopNontypicalPivot = computeFittingsPivot([], GENERAL_ROWS);
             }
-            if (!appData.fittings.smokePivot) {
-                appData.fittings.smokePivot = computeFittingsPivot(smokeSystems, SMOKE_ROWS);
+            // Миграция: smokePivot → smokeTypicalPivot
+            if (appData.fittings.smokePivot && !appData.fittings.smokeTypicalPivot) {
+                appData.fittings.smokeTypicalPivot = appData.fittings.smokePivot;
+                delete appData.fittings.smokePivot;
+            }
+            if (!appData.fittings.smokeTypicalPivot) {
+                appData.fittings.smokeTypicalPivot = computeFittingsPivot(smokeSystems, SMOKE_ROWS);
+            }
+            if (!appData.fittings.smokeNontypicalPivot) {
+                appData.fittings.smokeNontypicalPivot = computeFittingsPivot([], SMOKE_ROWS);
+            }
+            if (!appData.fittings.smokeFloors) {
+                appData.fittings.smokeFloors = parseInt(document.getElementById('numFloors').value) || 1;
             }
             // Модели опциональной арматуры квартир
             if (!appData.fittings.aptModels) appData.fittings.aptModels = {};
@@ -2198,7 +2226,7 @@
                 }
                 generalCount += zoneTotals[z.key].count;
             });
-            const sTotal = calcPivotTotal(appData.fittings.smokePivot, SMOKE_ROWS);
+            const sTotal = calcSmokeTotal();
 
             let html = '';
 
@@ -2310,6 +2338,10 @@
             html += `</div></div></div></div>`;
 
             // === Противодымная вентиляция ===
+            const smokeFloors = appData.fittings.smokeFloors || 1;
+            const smkTypTotal = calcPivotTotal(appData.fittings.smokeTypicalPivot || {}, SMOKE_ROWS, smokeFloors, null, 'smokeTypical');
+            const smkNonTotal = calcPivotTotal(appData.fittings.smokeNontypicalPivot || {}, SMOKE_ROWS, 1, null, 'smokeNontypical');
+
             html += `<div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button"
@@ -2322,7 +2354,54 @@
                 <div id="fittingGroupSmoke" class="accordion-collapse collapse"
                     data-bs-parent="#fittingsAccordion">
                     <div class="accordion-body p-2">
-                        ${buildPivotTable(appData.fittings.smokePivot, SMOKE_ROWS, 'smoke')}
+                        <div class="accordion" id="fittingsSmokeInner">
+
+                            <div class="accordion-item border" style="border-color:#dee2e6 !important;">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button py-2" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#fittingSmokeTypical"
+                                        style="background:#f8f9fa;font-size:0.9rem;">
+                                        <i class="bi bi-layers me-2"></i>
+                                        <span>Типовой этаж</span>
+                                        <span class="badge bg-secondary ms-2" id="fittingSmokeBadge_typical">${smkTypTotal.count}</span>
+                                    </button>
+                                </h2>
+                                <div id="fittingSmokeTypical" class="accordion-collapse collapse show"
+                                    data-bs-parent="#fittingsSmokeInner">
+                                    <div class="accordion-body p-2">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <label class="me-2 fw-bold" style="font-size:0.85rem;">Количество этажей:</label>
+                                            <input type="number" class="form-control form-control-sm" id="smokeTypicalFloors"
+                                                value="${smokeFloors}" min="1" style="width:90px;"
+                                                oninput="updateSmokeFloors(this)">
+                                            <small class="text-muted ms-2" style="font-size:0.78rem;">
+                                                <i class="bi bi-link-45deg"></i> из «Характеристики объекта» · значения в ячейках — на 1 этаж
+                                            </small>
+                                        </div>
+                                        ${buildPivotTable(appData.fittings.smokeTypicalPivot, SMOKE_ROWS, 'smokeTypical', smokeFloors)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="accordion-item border" style="border-color:#dee2e6 !important;">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed py-2" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#fittingSmokeNontypical"
+                                        style="background:#f8f9fa;font-size:0.9rem;">
+                                        <i class="bi bi-bricks me-2"></i>
+                                        <span>Не типовые этажи (подвал, кровля и пр.)</span>
+                                        <span class="badge bg-secondary ms-2" id="fittingSmokeBadge_nontypical">${smkNonTotal.count}</span>
+                                    </button>
+                                </h2>
+                                <div id="fittingSmokeNontypical" class="accordion-collapse collapse"
+                                    data-bs-parent="#fittingsSmokeInner">
+                                    <div class="accordion-body p-2">
+                                        ${buildPivotTable(appData.fittings.smokeNontypicalPivot, SMOKE_ROWS, 'smokeNontypical')}
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
             </div>`;
@@ -2339,10 +2418,15 @@
             return appData.fittings.mopFloors || 1;
         }
 
+        function getSmokeMultiplier() {
+            return appData.fittings.smokeFloors || 1;
+        }
+
         // Получить множитель для группы
         function getGroupMultiplier(group) {
             if (group === 'apartments') return getAptMultiplier();
             if (group === 'mop') return getMopMultiplier();
+            if (group === 'smokeTypical') return getSmokeMultiplier();
             return 1;
         }
 
@@ -2359,6 +2443,21 @@
 
             const zb = document.getElementById('fittingZoneBadge_mop');
             if (zb) zb.textContent = tTyp.count + tNon.count;
+        }
+
+        // Обновить заголовки противодымки (под-аккордеоны + общий)
+        function refreshSmokeHeaders() {
+            const smokeFloors = getSmokeMultiplier();
+            const tTyp = calcPivotTotal(appData.fittings.smokeTypicalPivot || {}, SMOKE_ROWS, smokeFloors, null, 'smokeTypical');
+            const tNon = calcPivotTotal(appData.fittings.smokeNontypicalPivot || {}, SMOKE_ROWS, 1, null, 'smokeNontypical');
+
+            const bTyp = document.getElementById('fittingSmokeBadge_typical');
+            if (bTyp) bTyp.textContent = tTyp.count;
+            const bNon = document.getElementById('fittingSmokeBadge_nontypical');
+            if (bNon) bNon.textContent = tNon.count;
+
+            const sb = document.getElementById('fittingGroupBadge_smoke');
+            if (sb) sb.textContent = tTyp.count + tNon.count;
         }
 
         // Обновить заголовок Общеобменной (сумма всех зон)
@@ -2379,16 +2478,20 @@
         }
 
         function updatePivotCell(input) {
-            const group = input.dataset.group; // 'apartments', 'mop', 'mopNontypical', 'rent' или 'smoke'
+            const group = input.dataset.group; // 'apartments', 'mop', 'mopNontypical', 'rent', 'smokeTypical', 'smokeNontypical'
             const row = input.dataset.row;
             const col = input.dataset.col;
             const val = Math.max(0, parseInt(input.value) || 0);
 
             // Обновить хранилище
-            if (group === 'smoke') {
-                if (!appData.fittings.smokePivot) appData.fittings.smokePivot = {};
-                if (!appData.fittings.smokePivot[row]) appData.fittings.smokePivot[row] = {};
-                appData.fittings.smokePivot[row][col] = val;
+            if (group === 'smokeTypical') {
+                if (!appData.fittings.smokeTypicalPivot) appData.fittings.smokeTypicalPivot = {};
+                if (!appData.fittings.smokeTypicalPivot[row]) appData.fittings.smokeTypicalPivot[row] = {};
+                appData.fittings.smokeTypicalPivot[row][col] = val;
+            } else if (group === 'smokeNontypical') {
+                if (!appData.fittings.smokeNontypicalPivot) appData.fittings.smokeNontypicalPivot = {};
+                if (!appData.fittings.smokeNontypicalPivot[row]) appData.fittings.smokeNontypicalPivot[row] = {};
+                appData.fittings.smokeNontypicalPivot[row][col] = val;
             } else if (group === 'mopNontypical') {
                 if (!appData.fittings.mopNontypicalPivot) appData.fittings.mopNontypicalPivot = {};
                 if (!appData.fittings.mopNontypicalPivot[row]) appData.fittings.mopNontypicalPivot[row] = {};
@@ -2404,7 +2507,8 @@
 
             // Обновить ИТОГО по строке
             let pivot;
-            if (group === 'smoke') pivot = appData.fittings.smokePivot;
+            if (group === 'smokeTypical') pivot = appData.fittings.smokeTypicalPivot;
+            else if (group === 'smokeNontypical') pivot = appData.fittings.smokeNontypicalPivot;
             else if (group === 'mopNontypical') pivot = appData.fittings.mopNontypicalPivot;
             else pivot = appData.fittings.zonePivots[group];
 
@@ -2422,10 +2526,8 @@
                 if (hintEl) hintEl.textContent = val > 0 ? `(\u0412\u0441\u0435\u0433\u043e: ${val * mul})` : '';
             }
 
-            if (group === 'smoke') {
-                const st = calcPivotTotal(appData.fittings.smokePivot, SMOKE_ROWS);
-                const sb = document.getElementById('fittingGroupBadge_smoke');
-                if (sb) sb.textContent = st.count;
+            if (group === 'smokeTypical' || group === 'smokeNontypical') {
+                refreshSmokeHeaders();
             } else if (group === 'mop' || group === 'mopNontypical') {
                 refreshMopHeaders();
                 refreshGeneralHeader();
@@ -2491,7 +2593,9 @@
         function hideExtraRow(group, rowKey) {
             // Проверяем, есть ли данные в строке
             let pivot;
-            if (group === 'mopNontypical') pivot = appData.fittings.mopNontypicalPivot || {};
+            if (group === 'smokeTypical') pivot = appData.fittings.smokeTypicalPivot || {};
+            else if (group === 'smokeNontypical') pivot = appData.fittings.smokeNontypicalPivot || {};
+            else if (group === 'mopNontypical') pivot = appData.fittings.mopNontypicalPivot || {};
             else pivot = (appData.fittings.zonePivots || {})[group] || {};
             const sgList = (group === 'apartments') ? APT_SIZE_GROUPS : SIZE_GROUPS;
             let hasData = false;
@@ -2518,6 +2622,14 @@
         }
         window.updateMopFloors = updateMopFloors;
 
+        function updateSmokeFloors(input) {
+            const val = Math.max(1, parseInt(input.value) || 1);
+            appData.fittings.smokeFloors = val;
+            renderFittingsTab();
+            saveData();
+        }
+        window.updateSmokeFloors = updateSmokeFloors;
+
         function updateFittingsTotals() {
             let gCount = 0, gArea = 0;
 
@@ -2533,7 +2645,7 @@
             const tRent = calcPivotTotal((appData.fittings.zonePivots || {}).rent || {}, GENERAL_ROWS, 1, null, 'rent');
             gCount += tRent.count; gArea += tRent.area;
 
-            const sTotal = calcPivotTotal(appData.fittings.smokePivot || {}, SMOKE_ROWS);
+            const sTotal = calcSmokeTotal();
 
             const totalCount = gCount + sTotal.count;
             const totalArea = gArea + sTotal.area;
