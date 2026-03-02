@@ -717,78 +717,191 @@
                 <!-- Вкладка: Изоляция -->
                 <div class="tab-pane fade" id="insulation" role="tabpanel">
                     <div class="info-badge">
-                        <i class="bi bi-info-circle"></i> Расчет на основе площади воздуховодов с учетом коэффициента нахлеста
+                        <i class="bi bi-info-circle"></i> Расчет огнезащитной и тепловой изоляции воздуховодов. Площади подтягиваются из итогов вкладки «Воздуховоды».
                     </div>
 
-                    <form id="insulationForm">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Площадь воздуховодов (м²)</label>
-                                <input type="number" class="form-control" id="insulationDuctArea" min="0" step="0.1" placeholder="0">
-                                <small class="text-muted">Или возьмите из вкладки "Воздуховоды"</small>
+                    <div class="accordion" id="insulationAccordion">
+
+                        <!-- === Общеобменная система === -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#insGeneral">
+                                    <i class="bi bi-wind me-2"></i>
+                                    <span>Общеобменная система</span>
+                                </button>
+                            </h2>
+                            <div id="insGeneral" class="accordion-collapse collapse show"
+                                data-bs-parent="#insulationAccordion">
+                                <div class="accordion-body p-2">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label"><i class="bi bi-box-seam me-1"></i>Тип утеплителя</label>
+                                            <select class="form-select" id="insGenType">
+                                                <option value="25" selected>Минеральная вата (25 кг/м³)</option>
+                                                <option value="40">Минеральная вата (40 кг/м³)</option>
+                                                <option value="35">Вспененный каучук (35 кг/м³)</option>
+                                                <option value="30">Вспененный полиэтилен (30 кг/м³)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label class="form-label"><i class="bi bi-rulers me-1"></i>Толщина изоляции (мм)</label>
+                                            <select class="form-select" id="insGenThickness">
+                                                <option value="25">25 мм</option>
+                                                <option value="30">30 мм</option>
+                                                <option value="40">40 мм</option>
+                                                <option value="50" selected>50 мм</option>
+                                                <option value="80">80 мм</option>
+                                                <option value="100">100 мм</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="accordion" id="insGenInner">
+                                        <!-- EI 30-90 -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#insGenEi30">
+                                                    <i class="bi bi-fire me-2 text-warning"></i>
+                                                    <span>Огнезащита базальтовым материалом EI 30 – 90</span>
+                                                </button>
+                                            </h2>
+                                            <div id="insGenEi30" class="accordion-collapse collapse show"
+                                                data-bs-parent="#insGenInner">
+                                                <div class="accordion-body p-2">
+                                                    <div class="row">
+                                                        <div class="col-md-6 mb-2">
+                                                            <label class="form-label">Площадь воздуховодов (м²)</label>
+                                                            <input type="number" class="form-control" id="insGenEi30Area" min="0" step="0.1" placeholder="0">
+                                                            <small class="text-muted"><i class="bi bi-link-45deg"></i> из итогов общеобменки</small>
+                                                        </div>
+                                                        <div class="col-md-6 mb-2">
+                                                            <label class="form-label">Коэффициент нахлеста</label>
+                                                            <input type="number" class="form-control" id="insGenEi30Overlap" value="1.1" min="1" max="2" step="0.05">
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-primary btn-sm mt-1" onclick="calcInsulation('Gen','Ei30')">
+                                                        <i class="bi bi-calculator me-1"></i>Рассчитать
+                                                    </button>
+                                                    <div id="insGenEi30Result" class="result-card mt-2" style="display:none;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- EI 90-180 -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#insGenEi90">
+                                                    <i class="bi bi-fire me-2 text-danger"></i>
+                                                    <span>Огнезащита базальтовым материалом EI 90 – 180</span>
+                                                </button>
+                                            </h2>
+                                            <div id="insGenEi90" class="accordion-collapse collapse"
+                                                data-bs-parent="#insGenInner">
+                                                <div class="accordion-body p-2">
+                                                    <div class="row">
+                                                        <div class="col-md-6 mb-2">
+                                                            <label class="form-label">Площадь воздуховодов (м²)</label>
+                                                            <input type="number" class="form-control" id="insGenEi90Area" min="0" step="0.1" placeholder="0">
+                                                            <small class="text-muted"><i class="bi bi-link-45deg"></i> из итогов общеобменки</small>
+                                                        </div>
+                                                        <div class="col-md-6 mb-2">
+                                                            <label class="form-label">Коэффициент нахлеста</label>
+                                                            <input type="number" class="form-control" id="insGenEi90Overlap" value="1.2" min="1" max="2" step="0.05">
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-primary btn-sm mt-1" onclick="calcInsulation('Gen','Ei90')">
+                                                        <i class="bi bi-calculator me-1"></i>Рассчитать
+                                                    </button>
+                                                    <div id="insGenEi90Result" class="result-card mt-2" style="display:none;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Площадь арматуры (м²)</label>
-                                <input type="number" class="form-control" id="insulationFittingsArea" min="0" step="0.1" placeholder="0">
-                                <small class="text-muted">Или возьмите из вкладки "Арматура"</small>
+                        </div>
+
+                        <!-- === Противодымная система === -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#insSmoke">
+                                    <i class="bi bi-shield-fill me-2 text-danger"></i>
+                                    <span>Противодымная система</span>
+                                </button>
+                            </h2>
+                            <div id="insSmoke" class="accordion-collapse collapse"
+                                data-bs-parent="#insulationAccordion">
+                                <div class="accordion-body p-2">
+
+                                    <div class="accordion" id="insSmkInner">
+                                        <!-- EI 30-90 -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#insSmkEi30">
+                                                    <i class="bi bi-fire me-2 text-warning"></i>
+                                                    <span>Огнезащита базальтовым материалом EI 30 – 90</span>
+                                                </button>
+                                            </h2>
+                                            <div id="insSmkEi30" class="accordion-collapse collapse show"
+                                                data-bs-parent="#insSmkInner">
+                                                <div class="accordion-body p-2">
+                                                    <div class="row">
+                                                        <div class="col-md-6 mb-2">
+                                                            <label class="form-label">Площадь воздуховодов (м²)</label>
+                                                            <input type="number" class="form-control" id="insSmkEi30Area" min="0" step="0.1" placeholder="0">
+                                                            <small class="text-muted"><i class="bi bi-link-45deg"></i> из итогов противодымки</small>
+                                                        </div>
+                                                        <div class="col-md-6 mb-2">
+                                                            <label class="form-label">Коэффициент нахлеста</label>
+                                                            <input type="number" class="form-control" id="insSmkEi30Overlap" value="1.1" min="1" max="2" step="0.05">
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-danger btn-sm mt-1" onclick="calcInsulation('Smk','Ei30')">
+                                                        <i class="bi bi-calculator me-1"></i>Рассчитать
+                                                    </button>
+                                                    <div id="insSmkEi30Result" class="result-card mt-2" style="display:none;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- EI 90-180 -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#insSmkEi90">
+                                                    <i class="bi bi-fire me-2 text-danger"></i>
+                                                    <span>Огнезащита базальтовым материалом EI 90 – 180</span>
+                                                </button>
+                                            </h2>
+                                            <div id="insSmkEi90" class="accordion-collapse collapse"
+                                                data-bs-parent="#insSmkInner">
+                                                <div class="accordion-body p-2">
+                                                    <div class="row">
+                                                        <div class="col-md-6 mb-2">
+                                                            <label class="form-label">Площадь воздуховодов (м²)</label>
+                                                            <input type="number" class="form-control" id="insSmkEi90Area" min="0" step="0.1" placeholder="0">
+                                                            <small class="text-muted"><i class="bi bi-link-45deg"></i> из итогов противодымки</small>
+                                                        </div>
+                                                        <div class="col-md-6 mb-2">
+                                                            <label class="form-label">Коэффициент нахлеста</label>
+                                                            <input type="number" class="form-control" id="insSmkEi90Overlap" value="1.2" min="1" max="2" step="0.05">
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="btn btn-danger btn-sm mt-1" onclick="calcInsulation('Smk','Ei90')">
+                                                        <i class="bi bi-calculator me-1"></i>Рассчитать
+                                                    </button>
+                                                    <div id="insSmkEi90Result" class="result-card mt-2" style="display:none;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Толщина изоляции (мм)</label>
-                                <select class="form-select" id="insulationThickness">
-                                    <option value="25">25 мм</option>
-                                    <option value="30">30 мм</option>
-                                    <option value="40">40 мм</option>
-                                    <option value="50" selected>50 мм</option>
-                                    <option value="80">80 мм</option>
-                                    <option value="100">100 мм</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Коэффициент нахлеста</label>
-                                <input type="number" class="form-control" id="overlapCoef" value="1.1" min="1" max="2" step="0.05">
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Тип утеплителя</label>
-                            <select class="form-select" id="insulationType">
-                                <option value="25" selected>Минеральная вата (25 кг/м³)</option>
-                                <option value="40">Минеральная вата (40 кг/м³)</option>
-                                <option value="35">Вспененный каучук (35 кг/м³)</option>
-                                <option value="30">Вспененный полиэтилен (30 кг/м³)</option>
-                            </select>
-                        </div>
-
-                        <button type="button" class="btn btn-outline-primary mb-3" id="syncFromDucts">
-                            <i class="bi bi-arrow-down-circle"></i> Загрузить данные из других вкладок
-                        </button>
-
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-calculator"></i> Рассчитать изоляцию
-                        </button>
-                    </form>
-
-                    <div id="insulationResult" class="result-card" style="display: none;">
-                        <h5><i class="bi bi-clipboard-data"></i> Результаты расчета изоляции</h5>
-                        <div class="result-item">
-                            <span>Общая площадь покрытия:</span>
-                            <span id="insulationTotalArea">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span>С учетом нахлеста:</span>
-                            <span id="insulationWithOverlap">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span>Объем утеплителя:</span>
-                            <span id="insulationVolume">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span>Масса утеплителя:</span>
-                            <span id="insulationMass">-</span>
-                        </div>
                     </div>
                 </div>
 
@@ -908,12 +1021,9 @@
             // Арматура
             renderFittingsTab();
 
-            // Изоляция
-            if (appData.insulation.ductArea) document.getElementById('insulationDuctArea').value = appData.insulation.ductArea;
-            if (appData.insulation.fittingsArea) document.getElementById('insulationFittingsArea').value = appData.insulation.fittingsArea;
-            if (appData.insulation.thickness) document.getElementById('insulationThickness').value = appData.insulation.thickness;
-            if (appData.insulation.overlap) document.getElementById('overlapCoef').value = appData.insulation.overlap;
-            if (appData.insulation.type) document.getElementById('insulationType').value = appData.insulation.type;
+            // Изоляция: восстановить настройки
+            if (appData.insulation.genType) document.getElementById('insGenType').value = appData.insulation.genType;
+            if (appData.insulation.genThickness) document.getElementById('insGenThickness').value = appData.insulation.genThickness;
 
             // Решетки
             if (appData.grilles.airFlow) document.getElementById('airFlow').value = appData.grilles.airFlow;
@@ -1450,9 +1560,11 @@
             document.getElementById('smokeTotalRouteLen').textContent = `${smkRouteLen.toFixed(1)} м`;
             document.getElementById('smokeTotalSurface').textContent = `${smkSurface.toFixed(2)} м²`;
 
-            // Сохраняем в appData для других вкладок (общие суммы)
+            // Сохраняем в appData для других вкладок
             appData.ducts.surface = genPerimeter + smkPerimeter;
             appData.ducts.totalFlow = genFlow + smkFlow;
+            appData.ducts.genSurface = genSurface;
+            appData.ducts.smkSurface = smkSurface;
             appData.ducts.systemsData = systemsData;
             saveData();
         }
@@ -2408,36 +2520,63 @@
         }
 
         // === ИЗОЛЯЦИЯ ===
-        document.getElementById('syncFromDucts').addEventListener('click', () => {
-            document.getElementById('insulationDuctArea').value = appData.ducts.surface?.toFixed(2) || 0;
-            document.getElementById('insulationFittingsArea').value = appData.fittings.totalArea?.toFixed(2) || 0;
+        // Автозаполнение площадей при переключении на вкладку Изоляция
+        document.getElementById('insulation-tab').addEventListener('shown.bs.tab', () => {
+            syncInsulationAreas();
         });
 
-        document.getElementById('insulationForm').addEventListener('submit', (e) => {
-            e.preventDefault();
+        function syncInsulationAreas() {
+            const genArea = (appData.ducts.genSurface || 0).toFixed(2);
+            const smkArea = (appData.ducts.smkSurface || 0).toFixed(2);
+            ['insGenEi30Area', 'insGenEi90Area'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = genArea;
+            });
+            ['insSmkEi30Area', 'insSmkEi90Area'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = smkArea;
+            });
+        }
 
-            const ductArea = parseFloat(document.getElementById('insulationDuctArea').value) || 0;
-            const fittingsArea = parseFloat(document.getElementById('insulationFittingsArea').value) || 0;
-            const thickness = parseFloat(document.getElementById('insulationThickness').value);
-            const overlap = parseFloat(document.getElementById('overlapCoef').value);
-            const density = parseFloat(document.getElementById('insulationType').value);
+        function calcInsulation(system, eiClass) {
+            const prefix = `ins${system}${eiClass}`;
+            const area = parseFloat(document.getElementById(`${prefix}Area`).value) || 0;
+            const overlap = parseFloat(document.getElementById(`${prefix}Overlap`).value) || 1.1;
+            const withOverlap = area * overlap;
+            const rollArea = 5; // 5 м² на рулон
+            const rolls = Math.ceil(withOverlap / rollArea);
 
-            const totalArea = ductArea + fittingsArea;
-            const withOverlap = totalArea * overlap;
-            const volume = withOverlap * (thickness / 1000);
-            const mass = volume * density;
+            let html = `<div class="result-item"><span>Площадь с учётом нахлеста:</span><span>${withOverlap.toFixed(2)} м\u00b2</span></div>`;
+            html += `<div class="result-item"><span>Кол-во рулонов (5 м\u00b2/рулон):</span><span>${rolls} шт.</span></div>`;
 
-            appData.insulation = {
-                ductArea, fittingsArea, thickness, overlap, type: density,
-                totalArea, withOverlap, volume, mass
-            };
+            // Для общеобменной — объём и масса утеплителя
+            if (system === 'Gen') {
+                const thickness = parseFloat(document.getElementById('insGenThickness').value) || 50;
+                const density = parseFloat(document.getElementById('insGenType').value) || 25;
+                const volume = withOverlap * (thickness / 1000);
+                const mass = volume * density;
+                html += `<div class="result-item"><span>Объём утеплителя:</span><span>${volume.toFixed(3)} м\u00b3</span></div>`;
+                html += `<div class="result-item"><span>Масса утеплителя:</span><span>${mass.toFixed(2)} кг</span></div>`;
+            }
+
+            const resultEl = document.getElementById(`${prefix}Result`);
+            resultEl.innerHTML = html;
+            resultEl.style.display = 'block';
+
+            // Сохранение
+            if (!appData.insulation) appData.insulation = {};
+            appData.insulation[`${system}_${eiClass}`] = { area, overlap, withOverlap, rolls };
             saveData();
+        }
+        window.calcInsulation = calcInsulation;
 
-            document.getElementById('insulationTotalArea').textContent = `${totalArea.toFixed(2)} м²`;
-            document.getElementById('insulationWithOverlap').textContent = `${withOverlap.toFixed(2)} м²`;
-            document.getElementById('insulationVolume').textContent = `${volume.toFixed(3)} м³`;
-            document.getElementById('insulationMass').textContent = `${mass.toFixed(2)} кг`;
-            document.getElementById('insulationResult').style.display = 'block';
+        // Сохранение настроек утеплителя при изменении
+        ['insGenType', 'insGenThickness'].forEach(id => {
+            document.getElementById(id).addEventListener('change', () => {
+                appData.insulation.genType = document.getElementById('insGenType').value;
+                appData.insulation.genThickness = document.getElementById('insGenThickness').value;
+                saveData();
+            });
         });
 
         // === РЕШЕТКИ ===
