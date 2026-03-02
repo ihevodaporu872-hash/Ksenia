@@ -444,11 +444,15 @@
 
                     <div class="section-title">Этажность и квартиры</div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label"><i class="bi bi-layers"></i> Количество этажей</label>
                             <input type="number" class="form-control building-char" id="numFloors" min="1" step="1" placeholder="0" value="">
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label"><i class="bi bi-arrows-vertical"></i> Высота типового этажа, м</label>
+                            <input type="number" class="form-control building-char" id="typicalFloorHeight" min="1" max="20" step="0.1" placeholder="3.0" value="">
+                        </div>
+                        <div class="col-md-4 mb-3">
                             <label class="form-label"><i class="bi bi-door-open"></i> Количество квартир (всего)</label>
                             <input type="number" class="form-control building-char" id="totalApartments" min="0" step="1" placeholder="0" value="">
                         </div>
@@ -491,25 +495,6 @@
                     <div class="velocity-control">
                         <i class="bi bi-info-circle"></i>
                         <small class="text-muted">Стандартные диаметры: 100, 125, 160, 200, 250, 315, 355, 400, 450, 500 мм</small>
-                    </div>
-
-                    <!-- Характеристики объекта -->
-                    <div class="card mb-3" style="border: 1px solid #dee2e6; border-radius: 10px;">
-                        <div class="card-header" style="background: #e7f1ff; border-radius: 10px 10px 0 0; padding: 10px 15px;">
-                            <i class="bi bi-building me-2"></i><strong>Характеристики объекта</strong>
-                        </div>
-                        <div class="card-body" style="padding: 15px;">
-                            <div class="row">
-                                <div class="col-md-6 mb-2">
-                                    <label class="form-label mb-1"><i class="bi bi-layers me-1"></i>Этажность</label>
-                                    <input type="number" class="form-control" id="buildingFloors" min="1" max="100" step="1" value="9" placeholder="Кол-во этажей">
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <label class="form-label mb-1"><i class="bi bi-arrows-vertical me-1"></i>Высота типового этажа (м)</label>
-                                    <input type="number" class="form-control" id="floorHeight" min="1" max="20" step="0.1" value="3.0" placeholder="Высота этажа, м">
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Кнопка экспорта в Excel -->
@@ -864,6 +849,7 @@
             if (appData.power.aboveGroundArea) document.getElementById('aboveGroundArea').value = appData.power.aboveGroundArea;
             if (appData.power.undergroundArea) document.getElementById('undergroundArea').value = appData.power.undergroundArea;
             if (appData.power.numFloors) document.getElementById('numFloors').value = appData.power.numFloors;
+            if (appData.power.typicalFloorHeight) document.getElementById('typicalFloorHeight').value = appData.power.typicalFloorHeight;
             if (appData.power.totalApartments) document.getElementById('totalApartments').value = appData.power.totalApartments;
             if (appData.power.apt1room) document.getElementById('apt1room').value = appData.power.apt1room;
             if (appData.power.apt2room) document.getElementById('apt2room').value = appData.power.apt2room;
@@ -901,6 +887,7 @@
                     aboveGroundArea: parseFloat(document.getElementById('aboveGroundArea').value) || 0,
                     undergroundArea: parseFloat(document.getElementById('undergroundArea').value) || 0,
                     numFloors: parseInt(document.getElementById('numFloors').value) || 0,
+                    typicalFloorHeight: parseFloat(document.getElementById('typicalFloorHeight').value) || 0,
                     totalApartments: parseInt(document.getElementById('totalApartments').value) || 0,
                     apt1room: parseInt(document.getElementById('apt1room').value) || 0,
                     apt2room: parseInt(document.getElementById('apt2room').value) || 0,
@@ -1045,8 +1032,8 @@
 
         // Расчёт стояка для "Прочих систем": поэтажное нарастание расхода
         function calculateRiserData(totalFlow, section, startFloor) {
-            const totalFloors = parseInt(document.getElementById('buildingFloors').value) || 9;
-            const floorHeight = parseFloat(document.getElementById('floorHeight').value) || 3.0;
+            const totalFloors = parseInt(document.getElementById('numFloors').value) || 9;
+            const floorHeight = parseFloat(document.getElementById('typicalFloorHeight').value) || 3.0;
             const numFloors = Math.max(1, totalFloors - (startFloor || 1) + 1);
             const flowPerFloor = totalFlow / numFloors;
 
@@ -1186,8 +1173,8 @@
         }
 
         function getRouteLength(startFloor) {
-            const totalFloors = parseInt(document.getElementById('buildingFloors').value) || 9;
-            const floorHeight = parseFloat(document.getElementById('floorHeight').value) || 3.0;
+            const totalFloors = parseInt(document.getElementById('numFloors').value) || 9;
+            const floorHeight = parseFloat(document.getElementById('typicalFloorHeight').value) || 3.0;
             const floors = Math.max(1, totalFloors - startFloor + 1);
             return floors * floorHeight;
         }
@@ -1432,12 +1419,12 @@
             });
         });
 
-        // Пересчет длин трасс при изменении этажности или высоты этажа
-        document.getElementById('buildingFloors').addEventListener('change', () => {
+        // Пересчет длин трасс при изменении этажности или высоты этажа (поля из первой вкладки)
+        document.getElementById('numFloors').addEventListener('change', () => {
             renderAllTables();
             updateAllStats();
         });
-        document.getElementById('floorHeight').addEventListener('change', () => {
+        document.getElementById('typicalFloorHeight').addEventListener('change', () => {
             renderAllTables();
             updateAllStats();
         });
