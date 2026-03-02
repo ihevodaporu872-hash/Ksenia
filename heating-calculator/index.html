@@ -781,7 +781,7 @@
                                                         <div class="col-md-6 mb-2">
                                                             <label class="form-label">Площадь воздуховодов (м²)</label>
                                                             <input type="number" class="form-control" id="insGenEi90Area" min="0" step="0.1" placeholder="0">
-                                                            <small class="text-muted"><i class="bi bi-link-45deg"></i> из итогов общеобменки</small>
+                                                            <small class="text-muted"><i class="bi bi-link-45deg"></i> S<sub>total</sub> − S<sub>EI 30-90</sub> (остаток ≈30%)</small>
                                                         </div>
                                                         <div class="col-md-6 mb-2">
                                                             <label class="form-label">Коэффициент нахлеста</label>
@@ -2559,9 +2559,12 @@
             const el30 = document.getElementById('insGenEi30Area');
             if (el30) el30.value = ei30Gen.toFixed(2);
 
-            // EI 90-180 общеобменка: полная площадь общеобменки
+            // EI 90-180 общеобменка: остаток = S_total - S_EI30 (≈30%)
+            const sTotal = (appData.ducts.rentSurface || 0) + (appData.ducts.resSurface || 0)
+                + (appData.ducts.otherSurface || 0);
+            const ei90Gen = sTotal - ei30Gen;
             const el90 = document.getElementById('insGenEi90Area');
-            if (el90) el90.value = (appData.ducts.genSurface || 0).toFixed(2);
+            if (el90) el90.value = ei90Gen.toFixed(2);
 
             // Противодымка: площадь противодымных воздуховодов
             const smkArea = (appData.ducts.smkSurface || 0).toFixed(2);
