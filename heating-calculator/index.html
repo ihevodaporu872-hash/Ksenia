@@ -751,7 +751,7 @@
                                                         <div class="col-md-6 mb-2">
                                                             <label class="form-label">Площадь воздуховодов (м²)</label>
                                                             <input type="number" class="form-control" id="insGenEi30Area" min="0" step="0.1" placeholder="0">
-                                                            <small class="text-muted"><i class="bi bi-link-45deg"></i> из итогов общеобменки</small>
+                                                            <small class="text-muted"><i class="bi bi-link-45deg"></i> (S<sub>аренда</sub> + S<sub>жильё</sub> + S<sub>прочие</sub>) × 0.7</small>
                                                         </div>
                                                         <div class="col-md-6 mb-2">
                                                             <label class="form-label">Коэффициент нахлеста</label>
@@ -1555,9 +1555,11 @@
             const genFlow = genSystems.reduce((sum, s) => sum + s.flow, 0);
             const genPerimeter = genSystems.reduce((sum, s) => sum + (s.perimeter || 0), 0);
             const genRouteLen = genSystems.reduce((sum, s) => sum + (s.routeLength || getRouteLength(s.startFloor || 1)), 0);
-            const genSurface = ['rent', 'residential', 'parking'].reduce((sum, sec) => {
-                return sum + systemsData[sec].reduce((s2, sys) => s2 + getSystemSurface(sys, sec), 0);
-            }, 0) + systemsData.other.reduce((sum, sys) => sum + getSystemSurface(sys, 'other'), 0);
+            const rentSurface = systemsData.rent.reduce((sum, sys) => sum + getSystemSurface(sys, 'rent'), 0);
+            const resSurface = systemsData.residential.reduce((sum, sys) => sum + getSystemSurface(sys, 'residential'), 0);
+            const parkSurface = systemsData.parking.reduce((sum, sys) => sum + getSystemSurface(sys, 'parking'), 0);
+            const otherSurface = systemsData.other.reduce((sum, sys) => sum + getSystemSurface(sys, 'other'), 0);
+            const genSurface = rentSurface + resSurface + parkSurface + otherSurface;
 
             document.getElementById('genSystems').textContent = genCount;
             document.getElementById('genFlow').textContent = `${genFlow.toLocaleString()} м³/ч`;
@@ -1584,8 +1586,14 @@
             appData.ducts.totalFlow = genFlow + smkFlow;
             appData.ducts.genSurface = genSurface;
             appData.ducts.smkSurface = smkSurface;
+            appData.ducts.rentSurface = rentSurface;
+            appData.ducts.resSurface = resSurface;
+            appData.ducts.otherSurface = otherSurface;
             appData.ducts.systemsData = systemsData;
             saveData();
+
+            // Мгновенное обновление полей изоляции
+            syncInsulationAreas();
         }
 
         // Пересчет при изменении скорости в секции
@@ -2545,12 +2553,18 @@
         });
 
         function syncInsulationAreas() {
-            const genArea = (appData.ducts.genSurface || 0).toFixed(2);
+            // EI 30-90 общеобменка: (S_аренда + S_жилье + S_прочие) × 0.7
+            const ei30Gen = ((appData.ducts.rentSurface || 0) + (appData.ducts.resSurface || 0)
+                + (appData.ducts.otherSurface || 0)) * 0.7;
+            const el30 = document.getElementById('insGenEi30Area');
+            if (el30) el30.value = ei30Gen.toFixed(2);
+
+            // EI 90-180 общеобменка: полная площадь общеобменки
+            const el90 = document.getElementById('insGenEi90Area');
+            if (el90) el90.value = (appData.ducts.genSurface || 0).toFixed(2);
+
+            // Противодымка: площадь противодымных воздуховодов
             const smkArea = (appData.ducts.smkSurface || 0).toFixed(2);
-            ['insGenEi30Area', 'insGenEi90Area'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = genArea;
-            });
             ['insSmkEi30Area', 'insSmkEi90Area'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = smkArea;
