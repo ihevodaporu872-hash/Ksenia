@@ -920,6 +920,7 @@
                                                         id="grGenCirc250" min="0" value="0"
                                                         data-group="gen" oninput="updateGrillesTotal('gen')"
                                                         style="width:80px;margin:0 auto;">
+                                                    <small class="text-muted" style="font-size:0.72rem;"><i class="bi bi-link-45deg"></i> (квартиры × 2) + 4-комн.</small>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -929,6 +930,7 @@
                                                         id="grGenRect05" min="0" value="0"
                                                         data-group="gen" oninput="updateGrillesTotal('gen')"
                                                         style="width:80px;margin:0 auto;">
+                                                    <small class="text-muted" style="font-size:0.72rem;"><i class="bi bi-link-45deg"></i> по клапанам НО (МОП + аренда)</small>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -1075,11 +1077,13 @@
             });
         });
 
-        // Связь: изменение количества квартир → пересчёт арматуры
+        // Связь: изменение количества квартир → пересчёт арматуры + решеток
         document.getElementById('totalApartments').addEventListener('input', () => {
-            if (document.getElementById('fittingsAccordion')) {
-                renderFittingsTab();
-            }
+            if (document.getElementById('fittingsAccordion')) renderFittingsTab();
+            if (document.getElementById('grGenCirc250')) syncGenGrillesFromFittings();
+        });
+        document.getElementById('apt4room').addEventListener('input', () => {
+            if (document.getElementById('grGenCirc250')) syncGenGrillesFromFittings();
         });
 
         // === ВОЗДУХОВОДЫ (CSV ИМПОРТ) ===
@@ -2535,6 +2539,15 @@
             } else if (group === 'mop' || group === 'mopNontypical') {
                 refreshMopHeaders();
                 refreshGeneralHeader();
+                // Обновление решеток общеобменки (клапаны НО из МОП)
+                if (row === 'no' && document.getElementById('grGenRect05')) syncGenGrillesFromFittings();
+            } else if (group === 'rent') {
+                const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS, 1, null, group);
+                const zb = document.getElementById(`fittingZoneBadge_${group}`);
+                if (zb) zb.textContent = zt.count;
+                refreshGeneralHeader();
+                // Обновление решеток общеобменки (клапаны НО из аренды)
+                if (row === 'no' && document.getElementById('grGenRect05')) syncGenGrillesFromFittings();
             } else {
                 const zoneSg = (group === 'apartments') ? APT_SIZE_GROUPS : SIZE_GROUPS;
                 const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS, mul, zoneSg, group);
@@ -2622,6 +2635,7 @@
             const val = Math.max(1, parseInt(input.value) || 1);
             appData.fittings.mopFloors = val;
             renderFittingsTab();
+            if (document.getElementById('grGenRect05')) syncGenGrillesFromFittings();
             saveData();
         }
         window.updateMopFloors = updateMopFloors;
@@ -2759,27 +2773,9 @@
 
         // Автозаполнение решеток при переключении на вкладку
         document.getElementById('grilles-tab').addEventListener('shown.bs.tab', () => {
-            syncGrillesFromDucts();
+            syncGenGrillesFromFittings();
             syncSmokeGrillesFromFittings();
         });
-
-        function syncGrillesFromDucts() {
-            // Если пользователь уже ввёл значения (из localStorage), не перезаписываем
-            if (appData.grilles && (appData.grilles.grGenCirc250 || appData.grilles.grGenRect05)) return;
-
-            // Общеобменка: 1 решетка на каждую систему
-            const genSections = ['rent', 'residential', 'parking', 'other'];
-            let circ250 = 0, rect05 = 0;
-            genSections.forEach(sec => {
-                systemsData[sec].forEach(s => {
-                    if (s.type === 'circular' && (s.diameter || 0) <= 250) circ250++;
-                    else rect05++;
-                });
-            });
-            document.getElementById('grGenCirc250').value = circ250;
-            document.getElementById('grGenRect05').value = rect05;
-            updateGrillesTotal('gen');
-        }
 
         // Решетки противодымки = сумма клапанов НЗ+ДУ из арматуры (типовой × этажи + нетиповой)
         function syncSmokeGrillesFromFittings() {
@@ -2805,6 +2801,34 @@
             if (el05) el05.value = rect05;
             if (el10) el10.value = rect10;
             updateGrillesTotal('smk');
+        }
+
+        // Решетки общеобменки: круглые из квартир, прямоугольные из клапанов НО (МОП + аренда)
+        function syncGenGrillesFromFittings() {
+            // Круглые d≤250: (общее кол-во квартир × 2) + 4-комнатные
+            const totalApt = parseInt(document.getElementById('totalApartments').value) || 0;
+            const apt4 = parseInt(document.getElementById('apt4room').value) || 0;
+            const circ250 = totalApt * 2 + apt4;
+
+            // Прямоугольные S≤0.5: сумма клапанов НО из МОП (типовой × этажи + нетиповой) + аренда
+            const mopFloors = appData.fittings.mopFloors || 1;
+            const mopPivot = (appData.fittings.zonePivots || {}).mop || {};
+            const mopNonPivot = appData.fittings.mopNontypicalPivot || {};
+            const rentPivot = (appData.fittings.zonePivots || {}).rent || {};
+            const allCols = ['d315', 'p1000', 'p1600', 'p2400', 'p3600'];
+
+            let rect05 = 0;
+            allCols.forEach(c => {
+                rect05 += ((mopPivot['no'] && mopPivot['no'][c]) || 0) * mopFloors;
+                rect05 += (mopNonPivot['no'] && mopNonPivot['no'][c]) || 0;
+                rect05 += (rentPivot['no'] && rentPivot['no'][c]) || 0;
+            });
+
+            const elCirc = document.getElementById('grGenCirc250');
+            const elRect = document.getElementById('grGenRect05');
+            if (elCirc) elCirc.value = circ250;
+            if (elRect) elRect.value = rect05;
+            updateGrillesTotal('gen');
         }
 
         // Инициализация
