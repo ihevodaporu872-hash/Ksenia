@@ -1109,7 +1109,7 @@
                                                 <td class="text-center est-total-cell" data-total="estSmkCladFitMat">0</td></tr>
                                             <!-- 6. Компенсаторы -->
                                             <tr class="est-row-group"><td colspan="6">6. Компенсаторы</td></tr>
-                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка компенсаторов<br><small class="text-muted"><i class="bi bi-link-45deg"></i> 4 × кол-во секций</small></td><td class="text-center">шт.</td>
+                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка компенсаторов<br><small class="text-muted"><i class="bi bi-link-45deg"></i> (этажи ÷ 4) × секции × 2</small></td><td class="text-center">шт.</td>
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkCompensators" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkCompensators" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estSmkCompensators">0</td></tr>
@@ -3202,8 +3202,9 @@
             if (matSmkFans) matSmkFans.value = 1;
             setEstVal('estSmkDucts', (appData.ducts.smkSurface || 0).toFixed(2));
             const secCount = parseInt(document.getElementById('sectionCount')?.value) || 1;
+            const numFloors = parseInt(document.getElementById('numFloors')?.value) || 1;
             setEstVal('estSmkCladding', 200 * secCount);
-            setEstVal('estSmkCompensators', 4 * secCount);
+            setEstVal('estSmkCompensators', Math.round(numFloors / 4) * secCount * 2);
             setEstVal('estSmkEi30', (parseFloat(document.getElementById('insSmkEi30Area')?.value) || 0).toFixed(2));
             setEstVal('estSmkEi90', (parseFloat(document.getElementById('insSmkEi90Area')?.value) || 0).toFixed(2));
             setEstVal('estSmkValves', calcSmokeTotal().count);
