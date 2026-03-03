@@ -1079,8 +1079,8 @@
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkEi30" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkEi30" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estSmkEi30">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Материал огнезащиты EI 30–90<br><small class="text-muted">× 1,2 от нанесения</small></td><td class="text-center">м²</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkEi30Mat" data-src="estSmkEi30" data-factor="1.2" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Материал огнезащиты EI 30–90<br><small class="text-muted">× 1,1 от нанесения</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkEi30Mat" data-src="estSmkEi30" data-factor="1.1" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkEi30Mat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estSmkEi30Mat">0</td></tr>
                                             <!-- 4. Огнезащита EI 90–180 -->
@@ -1230,8 +1230,8 @@
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEi30" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenEi30" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenEi30">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Материал огнезащиты EI 30–90<br><small class="text-muted">× 1,2 от нанесения</small></td><td class="text-center">м²</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEi30Mat" data-src="estGenEi30" data-factor="1.2" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Материал огнезащиты EI 30–90<br><small class="text-muted">× 1,1 от нанесения</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEi30Mat" data-src="estGenEi30" data-factor="1.1" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenEi30Mat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenEi30Mat">0</td></tr>
                                             <!-- 4. Огнезащита EI 90–180 -->
@@ -3078,11 +3078,12 @@
             const area = parseFloat(document.getElementById(`${prefix}Area`).value) || 0;
             const overlap = parseFloat(document.getElementById(`${prefix}Overlap`).value) || 1.1;
             const withOverlap = area * overlap;
-            const rollArea = 5; // 5 м² на рулон
-            const rolls = Math.ceil(withOverlap / rollArea);
 
-            let html = `<div class="result-item"><span>Площадь с учётом нахлеста:</span><span>${withOverlap.toFixed(2)} м\u00b2</span></div>`;
-            html += `<div class="result-item"><span>Кол-во рулонов (5 м\u00b2/рулон):</span><span>${rolls} шт.</span></div>`;
+            const html = `<div class="text-center py-1">
+                <div style="font-size:0.82rem;opacity:0.85;margin-bottom:6px;">Итого площадь материала с учётом нахлеста</div>
+                <div style="font-size:2.4rem;font-weight:700;line-height:1.1;">${withOverlap.toFixed(2)} <span style="font-size:1rem;font-weight:400;">м²</span></div>
+                <div style="font-size:0.78rem;opacity:0.7;margin-top:6px;">площадь воздуховодов ${area.toFixed(2)} м² × ${overlap.toFixed(2)}</div>
+            </div>`;
 
             const resultEl = document.getElementById(`${prefix}Result`);
             resultEl.innerHTML = html;
@@ -3090,7 +3091,7 @@
 
             // Сохранение
             if (!appData.insulation) appData.insulation = {};
-            appData.insulation[`${system}_${eiClass}`] = { area, overlap, withOverlap, rolls };
+            appData.insulation[`${system}_${eiClass}`] = { area, overlap, withOverlap };
             saveData();
         }
         window.calcInsulation = calcInsulation;
