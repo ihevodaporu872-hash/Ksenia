@@ -1135,11 +1135,15 @@
                                                 <td class="text-center est-total-cell" data-total="estSmkPnr">0</td></tr>
                                             <!-- 9. Решетки -->
                                             <tr class="est-row-group"><td colspan="6">9. Решетки</td></tr>
-                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка решеток до 0,5 м²<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из решеток</small></td><td class="text-center">шт.</td>
+                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка решеток<br><small class="text-muted"><i class="bi bi-link-45deg"></i> S≤0,5 + S≤1 из решеток</small></td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkGrillesWork" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkGrillesWork" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estSmkGrillesWork">0</td></tr>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Решетки прямоугольного сечения S до 0,5 м²</td><td class="text-center">шт.</td>
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkGrilles05" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkGrilles05" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estSmkGrilles05">0</td></tr>
-                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка решеток до 1,0 м²<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из решеток</small></td><td class="text-center">шт.</td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Решетки прямоугольного сечения S до 1 м²</td><td class="text-center">шт.</td>
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkGrilles10" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkGrilles10" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estSmkGrilles10">0</td></tr>
@@ -1286,11 +1290,15 @@
                                                 <td class="text-center est-total-cell" data-total="estGenPnr">0</td></tr>
                                             <!-- 9. Решетки -->
                                             <tr class="est-row-group"><td colspan="6">9. Решетки</td></tr>
-                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка решеток круглых d≤250<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из решеток</small></td><td class="text-center">шт.</td>
+                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка решеток<br><small class="text-muted"><i class="bi bi-link-45deg"></i> круглые + прямоугольные из решеток</small></td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenGrillesWork" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenGrillesWork" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estGenGrillesWork">0</td></tr>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Решетки круглого сечения d до 250</td><td class="text-center">шт.</td>
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenGrillesCirc" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenGrillesCirc" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenGrillesCirc">0</td></tr>
-                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка решеток прям. S≤0,5 м²<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из решеток</small></td><td class="text-center">шт.</td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Решетки прямоугольного сечения S до 0,5 м²</td><td class="text-center">шт.</td>
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenGrillesRect" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenGrillesRect" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenGrillesRect">0</td></tr>
@@ -3191,8 +3199,12 @@
             setEstVal('estSmkEi30', (parseFloat(document.getElementById('insSmkEi30Area')?.value) || 0).toFixed(2));
             setEstVal('estSmkEi90', (parseFloat(document.getElementById('insSmkEi90Area')?.value) || 0).toFixed(2));
             setEstVal('estSmkValves', calcSmokeTotal().count);
-            setEstVal('estSmkGrilles05', appData.grilles?.grSmkRect05 || 0);
-            setEstVal('estSmkGrilles10', appData.grilles?.grSmkRect10 || 0);
+            const smkR05 = appData.grilles?.grSmkRect05 || 0;
+            const smkR10 = appData.grilles?.grSmkRect10 || 0;
+            const elSmkGw = document.getElementById('estSmkGrillesWork');
+            if (elSmkGw) elSmkGw.value = smkR05 + smkR10;
+            setEstVal('estSmkGrilles05', smkR05);
+            setEstVal('estSmkGrilles10', smkR10);
 
             // --- Общеобменка ---
             setEstVal('estGenEquipment', appData.ducts.genCount || 0);
@@ -3212,8 +3224,12 @@
             const elCavMat = document.getElementById('estGenCavMat');
             if (elCavMat) { elCavMat.value = genCav; }
             setEstVal('estGenNoValves', sumFittingRow('no', true));
-            setEstVal('estGenGrillesCirc', appData.grilles?.grGenCirc250 || 0);
-            setEstVal('estGenGrillesRect', appData.grilles?.grGenRect05 || 0);
+            const genGrCirc = appData.grilles?.grGenCirc250 || 0;
+            const genGrRect = appData.grilles?.grGenRect05 || 0;
+            const elGenGw = document.getElementById('estGenGrillesWork');
+            if (elGenGw) elGenGw.value = genGrCirc + genGrRect;
+            setEstVal('estGenGrillesCirc', genGrCirc);
+            setEstVal('estGenGrillesRect', genGrRect);
 
             // Пересчитать все итоги строк и разделов
             recalcAllEstTotals();
@@ -3345,8 +3361,9 @@
                 ['работа',   '7. Установка клапанов с эл.приводом',               'шт.',    'estSmkValves'],
                 ['материал', '   Клапаны с эл.приводом',                          'шт.',    'estSmkValvesMat'],
                 ['работа',   '8. ПНР Системы вентиляции',                         'шт.',    'estSmkPnr'],
-                ['работа',   '9. Установка решеток до 0,5 м²',                    'шт.',    'estSmkGrilles05'],
-                ['работа',   '   Установка решеток до 1,0 м²',                    'шт.',    'estSmkGrilles10']
+                ['работа',   '9. Установка решеток',                               'шт.',    'estSmkGrillesWork'],
+                ['материал', '   Решетки прям. S до 0,5 м²',                      'шт.',    'estSmkGrilles05'],
+                ['материал', '   Решетки прям. S до 1 м²',                        'шт.',    'estSmkGrilles10']
             ];
             let smkSum = 0;
             smkItems.forEach(item => {
@@ -3386,8 +3403,9 @@
                 ['работа',   '7. Установка клапанов с эл.приводом НО',            'шт.',    'estGenNoValves'],
                 ['материал', '   Клапаны с эл.приводом НО',                       'шт.',    'estGenNoValvesMat'],
                 ['работа',   '8. ПНР Системы вентиляции',                         'шт.',    'estGenPnr'],
-                ['работа',   '9. Установка решеток круглых d≤250',                'шт.',    'estGenGrillesCirc'],
-                ['работа',   '   Установка решеток прям. S≤0,5 м²',              'шт.',    'estGenGrillesRect']
+                ['работа',   '9. Установка решеток',                               'шт.',    'estGenGrillesWork'],
+                ['материал', '   Решетки круглые d до 250',                        'шт.',    'estGenGrillesCirc'],
+                ['материал', '   Решетки прям. S до 0,5 м²',                      'шт.',    'estGenGrillesRect']
             ];
             let genSum = 0;
             genItems.forEach(item => {
