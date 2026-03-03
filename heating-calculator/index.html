@@ -1188,9 +1188,9 @@
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEquipMat" min="0" step="1" value="1" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenEquipMat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenEquipMat">0</td></tr>
-                                            <!-- 2а. Воздуховоды 1,0 мм (Подземная часть) -->
-                                            <tr class="est-row-group"><td colspan="6">2а. Воздуховоды толщ. 1,0 мм (Подземная часть)</td></tr>
-                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Монтаж воздуховодов толщ. 1,0 мм<br><small class="text-muted"><i class="bi bi-link-45deg"></i> Подземная часть</small></td><td class="text-center">м²</td>
+                                            <!-- 2а. Воздуховоды 1,0 мм (P ≥ 3200 мм) -->
+                                            <tr class="est-row-group"><td colspan="6">2а. Воздуховоды толщ. 1,0 мм (P ≥ 3200 мм)</td></tr>
+                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Монтаж воздуховодов толщ. 1,0 мм<br><small class="text-muted"><i class="bi bi-link-45deg"></i> системы с P ≥ 3200 мм</small></td><td class="text-center">м²</td>
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDucts10" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenDucts10" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenDucts10">0</td></tr>
@@ -1206,9 +1206,9 @@
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenCons10Mat" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenCons10Mat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenCons10Mat">0</td></tr>
-                                            <!-- 2б. Воздуховоды 0,8 мм (Аренда + Жилая + Прочие) -->
-                                            <tr class="est-row-group"><td colspan="6">2б. Воздуховоды толщ. 0,8 мм</td></tr>
-                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Монтаж воздуховодов толщ. 0,8 мм<br><small class="text-muted"><i class="bi bi-link-45deg"></i> Аренда + Жилая + Прочие</small></td><td class="text-center">м²</td>
+                                            <!-- 2б. Воздуховоды 0,8 мм (P < 3200 мм) -->
+                                            <tr class="est-row-group"><td colspan="6">2б. Воздуховоды толщ. 0,8 мм (P &lt; 3200 мм)</td></tr>
+                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Монтаж воздуховодов толщ. 0,8 мм<br><small class="text-muted"><i class="bi bi-link-45deg"></i> системы с P &lt; 3200 мм</small></td><td class="text-center">м²</td>
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDucts08" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenDucts08" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenDucts08">0</td></tr>
@@ -1916,9 +1916,17 @@
             appData.ducts.resSurface = resSurface;
             appData.ducts.otherSurface = otherSurface;
             appData.ducts.genCount = genCount;
-            // Воздуховоды по толщине: Подземная часть → 1,0 мм; остальные → 0,8 мм
-            appData.ducts.genSurface10 = parkSurface;
-            appData.ducts.genSurface08 = rentSurface + resSurface + otherSurface;
+            // Воздуховоды по толщине металла: P ≥ 3,2 м → толщ. 1,0 мм; P < 3,2 м → толщ. 0,8 мм
+            let genSurface10 = 0, genSurface08 = 0;
+            ['rent', 'residential', 'parking', 'other'].forEach(sec => {
+                systemsData[sec].forEach(s => {
+                    const surf = getSystemSurface(s, sec);
+                    if ((s.perimeter || 0) >= 3.2) genSurface10 += surf;
+                    else genSurface08 += surf;
+                });
+            });
+            appData.ducts.genSurface10 = genSurface10;
+            appData.ducts.genSurface08 = genSurface08;
             appData.ducts.systemsData = systemsData;
             saveData();
 
@@ -1934,13 +1942,12 @@
                 const est10 = document.getElementById('estGenDucts10');
                 const est08 = document.getElementById('estGenDucts08');
                 if (est10) {
-                    est10.value = parkSurface.toFixed(2);
-                    document.querySelectorAll('.est-input[data-src="estGenDucts10"]').forEach(el => el.value = parkSurface.toFixed(2));
+                    est10.value = genSurface10.toFixed(2);
+                    document.querySelectorAll('.est-input[data-src="estGenDucts10"]').forEach(el => el.value = genSurface10.toFixed(2));
                 }
                 if (est08) {
-                    const s08 = rentSurface + resSurface + otherSurface;
-                    est08.value = s08.toFixed(2);
-                    document.querySelectorAll('.est-input[data-src="estGenDucts08"]').forEach(el => el.value = s08.toFixed(2));
+                    est08.value = genSurface08.toFixed(2);
+                    document.querySelectorAll('.est-input[data-src="estGenDucts08"]').forEach(el => el.value = genSurface08.toFixed(2));
                 }
                 recalcAllEstTotals();
             }
