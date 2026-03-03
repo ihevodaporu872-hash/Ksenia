@@ -1117,13 +1117,13 @@
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkCompMat" data-src="estSmkCompensators" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkCompMat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estSmkCompMat">0</td></tr>
-                                            <!-- 7. Клапаны с эл.приводом -->
-                                            <tr class="est-row-group"><td colspan="6">7. Клапаны с эл.приводом</td></tr>
-                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка клапанов с эл.приводом<br><small class="text-muted"><i class="bi bi-link-45deg"></i> из арматуры</small></td><td class="text-center">шт.</td>
+                                            <!-- 7. Клапаны с эл.приводом НЗ -->
+                                            <tr class="est-row-group"><td colspan="6">7. Клапаны с эл.приводом НЗ</td></tr>
+                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка клапанов с эл.приводом НЗ<br><small class="text-muted"><i class="bi bi-link-45deg"></i> клапаны НЗ из арматуры</small></td><td class="text-center">шт.</td>
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkValves" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkValves" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estSmkValves">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Клапаны с эл.приводом</td><td class="text-center">шт.</td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Клапаны с эл.приводом НЗ</td><td class="text-center">шт.</td>
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkValvesMat" data-src="estSmkValves" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkValvesMat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estSmkValvesMat">0</td></tr>
@@ -3207,7 +3207,7 @@
             setEstVal('estSmkCompensators', Math.round(numFloors / 4) * secCount * 2);
             setEstVal('estSmkEi30', (parseFloat(document.getElementById('insSmkEi30Area')?.value) || 0).toFixed(2));
             setEstVal('estSmkEi90', (parseFloat(document.getElementById('insSmkEi90Area')?.value) || 0).toFixed(2));
-            setEstVal('estSmkValves', calcSmokeTotal().count);
+            setEstVal('estSmkValves', sumSmokeRow('nz'));
             const smkR05 = appData.grilles?.grSmkRect05 || 0;
             const smkR10 = appData.grilles?.grSmkRect10 || 0;
             const elSmkGw = document.getElementById('estSmkGrillesWork');
@@ -3318,6 +3318,20 @@
             });
         }
 
+        // Сумма одной строки арматуры по противодымной секции (типовой × этажи + нетиповой)
+        function sumSmokeRow(rowKey) {
+            const smokeFloors = appData.fittings.smokeFloors || 1;
+            const allCols = ['d315', 'p1000', 'p1600', 'p2400', 'p3600'];
+            const typPivot = appData.fittings.smokeTypicalPivot || {};
+            const nonPivot = appData.fittings.smokeNontypicalPivot || {};
+            let total = 0;
+            allCols.forEach(c => {
+                total += ((typPivot[rowKey] && typPivot[rowKey][c]) || 0) * smokeFloors;
+                total += (nonPivot[rowKey] && nonPivot[rowKey][c]) || 0;
+            });
+            return total;
+        }
+
         // Сумма значений одной строки арматуры по всем общеобменным зонам (с множителями)
         function sumFittingRow(rowKey, generalOnly) {
             let total = 0;
@@ -3367,8 +3381,8 @@
                 ['материал', '   Фасонные изделия (окожушивание)',                 'м²',     'estSmkCladFitMat'],
                 ['работа',   '6. Установка компенсаторов',                        'шт.',    'estSmkCompensators'],
                 ['материал', '   Компенсаторы',                                    'шт.',    'estSmkCompMat'],
-                ['работа',   '7. Установка клапанов с эл.приводом',               'шт.',    'estSmkValves'],
-                ['материал', '   Клапаны с эл.приводом',                          'шт.',    'estSmkValvesMat'],
+                ['работа',   '7. Установка клапанов с эл.приводом НЗ',            'шт.',    'estSmkValves'],
+                ['материал', '   Клапаны с эл.приводом НЗ',                       'шт.',    'estSmkValvesMat'],
                 ['работа',   '8. ПНР Системы вентиляции',                         'шт.',    'estSmkPnr'],
                 ['работа',   '9. Установка решеток',                               'шт.',    'estSmkGrillesWork'],
                 ['материал', '   Решетки прям. S до 0,5 м²',                      'шт.',    'estSmkGrilles05'],
