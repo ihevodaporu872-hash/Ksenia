@@ -1184,8 +1184,8 @@
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEquipment" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenEquipment" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenEquipment">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Оборудование ПВ</td><td class="text-center">компл.</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEquipMat" data-src="estGenEquipment" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Оборудование ПВ<br><small class="text-muted">комплект (по отдельному КП)</small></td><td class="text-center">компл.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenEquipMat" min="0" step="1" value="1" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenEquipMat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenEquipMat">0</td></tr>
                                             <!-- 2. Воздуховоды 0,8+1,0 мм -->
@@ -1897,11 +1897,21 @@
             appData.ducts.rentSurface = rentSurface;
             appData.ducts.resSurface = resSurface;
             appData.ducts.otherSurface = otherSurface;
+            appData.ducts.genCount = genCount;
             appData.ducts.systemsData = systemsData;
             saveData();
 
             // Мгновенное обновление полей изоляции
             syncInsulationAreas();
+
+            // Мгновенное обновление количества систем в Смете (оборудование)
+            const estEquip = document.getElementById('estGenEquipment');
+            if (estEquip) {
+                estEquip.value = genCount;
+                const estEquipMat = document.getElementById('estGenEquipMat');
+                if (estEquipMat) estEquipMat.value = 1;
+                recalcAllEstTotals();
+            }
         }
 
         // Пересчет при изменении скорости в секции
@@ -3145,6 +3155,10 @@
             setEstVal('estSmkGrilles10', appData.grilles?.grSmkRect10 || 0);
 
             // --- Общеобменка ---
+            setEstVal('estGenEquipment', appData.ducts.genCount || 0);
+            // Оборудование закупается комплектом — материал всегда = 1
+            const matEquip = document.getElementById('estGenEquipMat');
+            if (matEquip) matEquip.value = 1;
             setEstVal('estGenEi30', (parseFloat(document.getElementById('insGenEi30Area')?.value) || 0).toFixed(2));
             setEstVal('estGenEi90', (parseFloat(document.getElementById('insGenEi90Area')?.value) || 0).toFixed(2));
             setEstVal('estGenDucts', (appData.ducts.genSurface || 0).toFixed(2));
@@ -3300,7 +3314,7 @@
 
             const genItems = [
                 ['работа',   '1. Установка оборудования ПВ',                      'компл.', 'estGenEquipment'],
-                ['материал', '   Оборудование ПВ',                                 'компл.', 'estGenEquipMat'],
+                ['материал', '   Оборудование ПВ (комплект по КП)',               'компл.', 'estGenEquipMat'],
                 ['работа',   '2. Монтаж воздуховодов толщ. 0,8 мм и 1,0 мм',     'м²',     'estGenDucts'],
                 ['материал', '   Воздуховод',                                       'м²',     'estGenDuctsMat'],
                 ['материал', '   Фасонные изделия ОО',                             'компл.', 'estGenFitMat'],
