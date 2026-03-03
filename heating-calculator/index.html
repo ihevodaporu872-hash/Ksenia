@@ -1333,7 +1333,48 @@
                                     </ul>
                                     <div class="tab-content">
                                         <div class="tab-pane" id="tab-work-rates" role="tabpanel">
-                                            <p class="text-muted p-3">Раздел в разработке.</p>
+                                            <table class="table table-sm table-bordered mb-0">
+                                                <thead class="table-dark">
+                                                    <tr>
+                                                        <th>Наименование работы</th>
+                                                        <th class="text-center" style="width:80px;">Ед. изм.</th>
+                                                        <th class="text-center" style="width:160px;">Цена за ед., руб.</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="workRatesTbody">
+                                                    <tr><td>Монтаж воздуховодов толщ. 0,8 мм</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_duct08" min="0" step="1" value="3591" data-targets="estGenDucts08" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Монтаж воздуховодов толщ. 1,0 мм</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_duct10" min="0" step="1" value="3927" data-targets="estSmkDucts estGenDucts10" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Нанесение огнезащиты EI 30–90</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_ei30" min="0" step="1" value="1180" data-targets="estSmkEi30 estGenEi30" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Нанесение огнезащиты EI 90–180</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_ei90" min="0" step="1" value="1180" data-targets="estSmkEi90 estGenEi90" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Окожушивание воздуховодов</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_cladding" min="0" step="1" value="900" data-targets="estSmkCladding" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>ПНР Системы вентиляции</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_pnr" min="0" step="1" value="2040" data-targets="estSmkPnr estGenPnr" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Установка вентиляторов</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_fans" min="0" step="1" value="22440" data-targets="estSmkFans" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Установка клапанов с эл.приводом НЗ</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_valvesnz" min="0" step="1" value="2805" data-targets="estSmkValves" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Установка клапанов с эл.приводом НО</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_valvesno" min="0" step="1" value="2805" data-targets="estGenNoValves" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Установка компенсаторов</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_comp" min="0" step="1" value="2805" data-targets="estSmkCompensators" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Установка оборудования ПВ</td><td class="text-center">компл.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_equip" min="0" step="1" value="22440" data-targets="estGenEquipment" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Установка решеток</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_grilles" min="0" step="1" value="900" data-targets="estSmkGrillesWork estGenGrillesWork" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Установка ручных клапанов и CAV</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_dk" min="0" step="1" value="561" data-targets="estGenDkNo" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Установка шумоглушителей</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdbw_shg" min="0" step="1" value="2805" data-targets="estGenShg" oninput="applyPriceDb(this)"></td></tr>
+                                                </tbody>
+                                            </table>
+                                            <button class="btn btn-sm btn-outline-secondary mt-2" onclick="addWorkRateRow()">
+                                                <i class="bi bi-plus-lg me-1"></i>Добавить позицию
+                                            </button>
                                         </div>
                                         <div class="tab-pane active" id="tab-mat-prices" role="tabpanel">
                                             <table class="table table-sm table-bordered mb-0">
@@ -3416,7 +3457,8 @@
         window.applyPriceDb = applyPriceDb;
 
         function loadPriceDb() {
-            document.querySelectorAll('#tab-mat-prices input[data-targets]').forEach(input => {
+            // Restore and apply all static price-db inputs (work rates + materials)
+            document.querySelectorAll('#estPriceDb input[data-targets]').forEach(input => {
                 if (appData.prices && appData.prices[input.id] !== undefined) {
                     input.value = appData.prices[input.id];
                 }
@@ -3426,8 +3468,38 @@
                     if (priceEl) priceEl.value = price;
                 });
             });
+            // Restore custom work rate rows
+            const custom = appData.prices && appData.prices.customWorkRates;
+            if (custom && custom.length) {
+                custom.forEach(row => addWorkRateRow(row.name, row.unit, row.price));
+            }
             recalcAllEstTotals();
         }
+
+        function addWorkRateRow(name, unit, price) {
+            const tbody = document.getElementById('workRatesTbody');
+            if (!tbody) return;
+            const tr = document.createElement('tr');
+            tr.dataset.custom = '1';
+            tr.innerHTML = `<td><input type="text" class="form-control form-control-sm" placeholder="Наименование..." value="${name || ''}" oninput="saveCustomWorkRates()"></td>` +
+                `<td><input type="text" class="form-control form-control-sm text-center" placeholder="шт." value="${unit || ''}" style="width:60px;" oninput="saveCustomWorkRates()"></td>` +
+                `<td><input type="number" class="form-control form-control-sm text-center" min="0" step="1" value="${price || 0}" oninput="saveCustomWorkRates()"></td>`;
+            tbody.appendChild(tr);
+            saveCustomWorkRates();
+        }
+        window.addWorkRateRow = addWorkRateRow;
+
+        function saveCustomWorkRates() {
+            const rows = [];
+            document.querySelectorAll('#workRatesTbody tr[data-custom="1"]').forEach(tr => {
+                const inputs = tr.querySelectorAll('input');
+                rows.push({ name: inputs[0].value, unit: inputs[1].value, price: parseFloat(inputs[2].value) || 0 });
+            });
+            if (!appData.prices) appData.prices = {};
+            appData.prices.customWorkRates = rows;
+            saveData();
+        }
+        window.saveCustomWorkRates = saveCustomWorkRates;
 
         // Сумма одной строки арматуры по противодымной секции (типовой × этажи + нетиповой)
         function sumSmokeRow(rowKey) {
