@@ -1311,6 +1311,86 @@
                             </div>
                         </div>
 
+                        <!-- База расценок -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#estPriceDb">
+                                    <i class="bi bi-currency-dollar me-2 text-success"></i>
+                                    <span>База расценок</span>
+                                </button>
+                            </h2>
+                            <div id="estPriceDb" class="accordion-collapse collapse"
+                                data-bs-parent="#estimateAccordion">
+                                <div class="accordion-body p-2">
+                                    <ul class="nav nav-tabs mb-3" id="priceDbTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-work-rates" type="button" role="tab">1. Ставки работ</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-mat-prices" type="button" role="tab">2. Цены на материалы</button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content">
+                                        <div class="tab-pane" id="tab-work-rates" role="tabpanel">
+                                            <p class="text-muted p-3">Раздел в разработке.</p>
+                                        </div>
+                                        <div class="tab-pane active" id="tab-mat-prices" role="tabpanel">
+                                            <table class="table table-sm table-bordered mb-0">
+                                                <thead class="table-dark">
+                                                    <tr>
+                                                        <th>Наименование материала</th>
+                                                        <th class="text-center" style="width:80px;">Ед. изм.</th>
+                                                        <th class="text-center" style="width:160px;">Цена за ед., руб.</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr><td>Воздуховод 0,8 мм</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_duct08" min="0" step="1" value="1100" data-targets="estGenDucts08Mat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Воздуховод 1,0 мм</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_duct10" min="0" step="1" value="1260" data-targets="estSmkDuctsMat estGenDucts10Mat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Фасонные изделия 0,8 мм</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_fit08" min="0" step="1" value="1500" data-targets="estGenFit08Mat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Фасонные изделия 1,0 мм</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_fit10" min="0" step="1" value="1720" data-targets="estSmkFitMat estGenFit10Mat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Расходники 0,8 мм</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_cons08" min="0" step="1" value="400" data-targets="estGenCons08Mat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Расходники 1,0 мм</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_cons10" min="0" step="1" value="400" data-targets="estSmkConsMat estGenCons10Mat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Огнезащита EI 30–90</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_ei30" min="0" step="1" value="215" data-targets="estSmkEi30Mat estGenEi30Mat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Огнезащита EI 90–180</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_ei90" min="0" step="1" value="389" data-targets="estSmkEi90Mat estGenEi90Mat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Оцинкованный лист до 0,5 мм</td><td class="text-center">м²</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_clad05" min="0" step="1" value="750" data-targets="estSmkClad05Mat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Фасонные (окожушивание)</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_cladfit" min="0" step="1" value="0" data-targets="estSmkCladFitMat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Компенсаторы</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_comp" min="0" step="1" value="14000" data-targets="estSmkCompMat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Клапаны НЗ</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_valvesnz" min="0" step="1" value="18000" data-targets="estSmkValvesMat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Клапаны НО</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_valvesno" min="0" step="1" value="14000" data-targets="estGenNoValvesMat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Дроссель-клапаны</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_dk" min="0" step="1" value="0" data-targets="estGenDkMat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Клапан CAV</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_cav" min="0" step="1" value="0" data-targets="estGenCavMat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Шумоглушители</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_shg" min="0" step="1" value="15000" data-targets="estGenShgMat" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Решетки круглые</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_grcirc" min="0" step="1" value="600" data-targets="estGenGrillesCirc" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Решетки прямоугольные S≤0,5 м²</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_gr05" min="0" step="1" value="4500" data-targets="estSmkGrilles05 estGenGrillesRect" oninput="applyPriceDb(this)"></td></tr>
+                                                    <tr><td>Решетки прямоугольные до 1 м²</td><td class="text-center">шт.</td>
+                                                        <td class="text-center"><input type="number" class="form-control form-control-sm text-center" id="pdb_gr10" min="0" step="1" value="11000" data-targets="estSmkGrilles10" oninput="applyPriceDb(this)"></td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                     <div class="text-center mt-3 mb-2">
@@ -1332,7 +1412,8 @@
             ducts: { surface: 0 },
             fittings: { totalArea: 0 },
             insulation: {},
-            grilles: {}
+            grilles: {},
+            prices: {}
         };
 
         // Загрузка данных из localStorage
@@ -3318,6 +3399,36 @@
             });
         }
 
+        function applyPriceDb(input) {
+            const targets = (input.dataset.targets || '').split(/\s+/).filter(Boolean);
+            const price = parseFloat(input.value) || 0;
+            targets.forEach(targetId => {
+                const priceEl = document.querySelector(`.est-price-input[data-for="${targetId}"]`);
+                if (priceEl) {
+                    priceEl.value = price;
+                    calcEstRow(priceEl);
+                }
+            });
+            if (!appData.prices) appData.prices = {};
+            appData.prices[input.id] = price;
+            saveData();
+        }
+        window.applyPriceDb = applyPriceDb;
+
+        function loadPriceDb() {
+            document.querySelectorAll('#tab-mat-prices input[data-targets]').forEach(input => {
+                if (appData.prices && appData.prices[input.id] !== undefined) {
+                    input.value = appData.prices[input.id];
+                }
+                const price = parseFloat(input.value) || 0;
+                (input.dataset.targets || '').split(/\s+/).filter(Boolean).forEach(targetId => {
+                    const priceEl = document.querySelector(`.est-price-input[data-for="${targetId}"]`);
+                    if (priceEl) priceEl.value = price;
+                });
+            });
+            recalcAllEstTotals();
+        }
+
         // Сумма одной строки арматуры по противодымной секции (типовой × этажи + нетиповой)
         function sumSmokeRow(rowKey) {
             const smokeFloors = appData.fittings.smokeFloors || 1;
@@ -3453,6 +3564,7 @@
 
         // Инициализация
         loadData();
+        loadPriceDb();
         renderFittingsTab();
     </script>
 </body>
