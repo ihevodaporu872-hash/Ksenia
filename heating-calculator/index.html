@@ -1061,16 +1061,16 @@
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkDucts" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkDucts" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estSmkDucts">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Воздуховод 1,0 мм</td><td class="text-center">м²</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkDuctsMat" data-src="estSmkDucts" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Воздуховод 1,0 мм<br><small class="text-muted">× 0,8 от монтажа</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkDuctsMat" data-src="estSmkDucts" data-factor="0.8" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkDuctsMat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estSmkDuctsMat">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Фасонные изделия ПД</td><td class="text-center">компл.</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkFitMat" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Фасонные изделия из оцинкованной стали толщ. 1,0 мм<br><small class="text-muted">× 0,2 от монтажа</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkFitMat" data-src="estSmkDucts" data-factor="0.2" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkFitMat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estSmkFitMat">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Крепёжные элементы ПД</td><td class="text-center">компл.</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkConsMat" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Расходники на системы вентиляции<br><small class="text-muted">× 1,0 от монтажа</small></td><td class="text-center">компл.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estSmkConsMat" data-src="estSmkDucts" data-factor="1.0" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estSmkConsMat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estSmkConsMat">0</td></tr>
                                             <!-- 3. Огнезащита EI 30–90 -->
@@ -3350,9 +3350,9 @@
                 ['работа',   '1. Установка вентиляторов',                          'шт.',    'estSmkFans'],
                 ['материал', '   Вентиляторы и установки по КП',                   'компл.', 'estSmkFansMat'],
                 ['работа',   '2. Монтаж воздуховодов толщ. 1,0 мм',               'м²',     'estSmkDucts'],
-                ['материал', '   Воздуховод 1,0 мм',                               'м²',     'estSmkDuctsMat'],
-                ['материал', '   Фасонные изделия ПД',                             'компл.', 'estSmkFitMat'],
-                ['материал', '   Крепёжные элементы ПД',                           'компл.', 'estSmkConsMat'],
+                ['материал', '   Воздуховод 1,0 мм (× 0,8)',                        'м²',     'estSmkDuctsMat'],
+                ['материал', '   Фасонные изделия из оцинк. стали 1,0 мм (× 0,2)', 'м²',     'estSmkFitMat'],
+                ['материал', '   Расходники на системы вентиляции (× 1,0)',         'компл.', 'estSmkConsMat'],
                 ['работа',   '3. Нанесение огнезащиты EI 30–90',                  'м²',     'estSmkEi30'],
                 ['материал', '   Материал огнезащиты EI 30–90',                   'м²',     'estSmkEi30Mat'],
                 ['работа',   '4. Нанесение огнезащиты EI 90–180',                 'м²',     'estSmkEi90'],
