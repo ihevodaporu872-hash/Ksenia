@@ -1254,9 +1254,9 @@
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenShgMat" data-src="estGenShg" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenShgMat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenShgMat">0</td></tr>
-                                            <!-- 6. Клапаны дроссельные и обратные -->
-                                            <tr class="est-row-group"><td colspan="6">6. Клапаны дроссельные и обратные</td></tr>
-                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка дросселей и обратных клапанов<br><small class="text-muted"><i class="bi bi-link-45deg"></i> ДК из арматуры</small></td><td class="text-center">шт.</td>
+                                            <!-- 6. Клапаны ручные и CAV -->
+                                            <tr class="est-row-group"><td colspan="6">6. Клапаны ручные и CAV</td></tr>
+                                            <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка ручных клапанов и CAV<br><small class="text-muted"><i class="bi bi-link-45deg"></i> ДК + CAV из арматуры</small></td><td class="text-center">шт.</td>
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDkNo" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenDkNo" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenDkNo">0</td></tr>
@@ -1264,10 +1264,10 @@
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDkMat" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenDkMat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenDkMat">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Обратные клапаны</td><td class="text-center">шт.</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenObMat" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
-                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenObMat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
-                                                <td class="text-center est-total-cell" data-total="estGenObMat">0</td></tr>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Клапан CAV</td><td class="text-center">шт.</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenCavMat" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenCavMat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
+                                                <td class="text-center est-total-cell" data-total="estGenCavMat">0</td></tr>
                                             <!-- 7. Клапаны с эл.приводом НО -->
                                             <tr class="est-row-group"><td colspan="6">7. Клапаны с эл.приводом НО</td></tr>
                                             <tr class="est-row-work"><td class="est-type-work text-center">работа</td><td>Установка клапанов с эл.приводом НО<br><small class="text-muted"><i class="bi bi-link-45deg"></i> клапаны НО из арматуры</small></td><td class="text-center">шт.</td>
@@ -3204,7 +3204,13 @@
             setEstVal('estGenDucts10', (appData.ducts.genSurface10 || 0).toFixed(2));
             setEstVal('estGenDucts08', (appData.ducts.genSurface08 || 0).toFixed(2));
             setEstVal('estGenShg', sumFittingRow('shg', true));
-            setEstVal('estGenDkNo', sumFittingRow('dk', true));
+            const genDk = sumFittingRow('dk', true);
+            const genCav = sumFittingRow('cav', true);
+            setEstVal('estGenDkNo', genDk + genCav);  // работа = ДК + CAV
+            const elDkMat = document.getElementById('estGenDkMat');
+            if (elDkMat) { elDkMat.value = genDk; }
+            const elCavMat = document.getElementById('estGenCavMat');
+            if (elCavMat) { elCavMat.value = genCav; }
             setEstVal('estGenNoValves', sumFittingRow('no', true));
             setEstVal('estGenGrillesCirc', appData.grilles?.grGenCirc250 || 0);
             setEstVal('estGenGrillesRect', appData.grilles?.grGenRect05 || 0);
@@ -3374,9 +3380,9 @@
                 ['материал', '   Материал огнезащиты EI 90–180',                  'м²',     'estGenEi90Mat'],
                 ['работа',   '5. Установка шумоглушителей',                       'шт.',    'estGenShg'],
                 ['материал', '   Шумоглушители',                                    'шт.',    'estGenShgMat'],
-                ['работа',   '6. Установка дросселей и обратных клапанов',        'шт.',    'estGenDkNo'],
+                ['работа',   '6. Установка ручных клапанов и CAV',                 'шт.',    'estGenDkNo'],
                 ['материал', '   Дроссель-клапаны',                                'шт.',    'estGenDkMat'],
-                ['материал', '   Обратные клапаны',                                'шт.',    'estGenObMat'],
+                ['материал', '   Клапан CAV',                                       'шт.',    'estGenCavMat'],
                 ['работа',   '7. Установка клапанов с эл.приводом НО',            'шт.',    'estGenNoValves'],
                 ['материал', '   Клапаны с эл.приводом НО',                       'шт.',    'estGenNoValvesMat'],
                 ['работа',   '8. ПНР Системы вентиляции',                         'шт.',    'estGenPnr'],
