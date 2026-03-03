@@ -1194,16 +1194,16 @@
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDucts10" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenDucts10" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenDucts10">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Воздуховод 1,0 мм</td><td class="text-center">м²</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDucts10Mat" data-src="estGenDucts10" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Воздуховод 1,0 мм<br><small class="text-muted">× 0,8 от монтажа</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDucts10Mat" data-src="estGenDucts10" data-factor="0.8" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenDucts10Mat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenDucts10Mat">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Фасонные изделия (1,0 мм)</td><td class="text-center">компл.</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenFit10Mat" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Фасонные изделия (1,0 мм)<br><small class="text-muted">× 0,2 от монтажа</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenFit10Mat" data-src="estGenDucts10" data-factor="0.2" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenFit10Mat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenFit10Mat">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Крепёжные элементы (1,0 мм)</td><td class="text-center">компл.</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenCons10Mat" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Расходники на системы вентиляции (1,0 мм)<br><small class="text-muted">× 1,0 от монтажа</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenCons10Mat" data-src="estGenDucts10" data-factor="1.0" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenCons10Mat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenCons10Mat">0</td></tr>
                                             <!-- 2б. Воздуховоды 0,8 мм (P < 3200 мм) -->
@@ -1212,16 +1212,16 @@
                                                 <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDucts08" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenDucts08" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenDucts08">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Воздуховод 0,8 мм</td><td class="text-center">м²</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDucts08Mat" data-src="estGenDucts08" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Воздуховод 0,8 мм<br><small class="text-muted">× 0,8 от монтажа</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenDucts08Mat" data-src="estGenDucts08" data-factor="0.8" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenDucts08Mat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenDucts08Mat">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Фасонные изделия (0,8 мм)</td><td class="text-center">компл.</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenFit08Mat" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Фасонные изделия (0,8 мм)<br><small class="text-muted">× 0,2 от монтажа</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenFit08Mat" data-src="estGenDucts08" data-factor="0.2" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenFit08Mat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenFit08Mat">0</td></tr>
-                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Крепёжные элементы (0,8 мм)</td><td class="text-center">компл.</td>
-                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenCons08Mat" min="0" step="1" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
+                                            <tr class="est-row-mat"><td class="est-type-mat text-center">материал</td><td>Расходники на системы вентиляции (0,8 мм)<br><small class="text-muted">× 1,0 от монтажа</small></td><td class="text-center">м²</td>
+                                                <td class="text-center est-qty"><input type="number" class="form-control form-control-sm text-center est-input" id="estGenCons08Mat" data-src="estGenDucts08" data-factor="1.0" min="0" step="0.01" value="0" style="width:80px;margin:0 auto;" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center"><input type="number" class="form-control form-control-sm text-center est-price-input" data-for="estGenCons08Mat" min="0" step="1" value="0" oninput="calcEstRow(this)"></td>
                                                 <td class="text-center est-total-cell" data-total="estGenCons08Mat">0</td></tr>
                                             <!-- 3. Огнезащита EI 30–90 -->
@@ -3216,9 +3216,11 @@
             const el = document.getElementById(id);
             if (!el) return;
             el.value = val;
-            // Зеркалируем количество в зависимые строки материалов
+            const numVal = parseFloat(val) || 0;
+            // Зеркалируем количество в зависимые строки материалов с учётом коэффициента
             document.querySelectorAll(`.est-input[data-src="${id}"]`).forEach(matInput => {
-                matInput.value = val;
+                const factor = parseFloat(matInput.dataset.factor ?? 1);
+                matInput.value = (numVal * factor).toFixed(2);
             });
         }
 
@@ -3235,14 +3237,16 @@
             const total = qty * price;
             totalCell.textContent = total > 0 ? total.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0';
 
-            // Зеркалируем количество в зависимые строки материалов (только если изменили работу)
+            // Зеркалируем количество в зависимые строки материалов с учётом коэффициента
             const srcId = qtyInput.id;
             if (srcId) {
                 document.querySelectorAll(`.est-input[data-src="${srcId}"]`).forEach(matInput => {
-                    matInput.value = qtyInput.value;
+                    const factor = parseFloat(matInput.dataset.factor ?? 1);
+                    const matQty = qty * factor;
+                    matInput.value = matQty.toFixed(2);
                     const matTr = matInput.closest('tr');
                     const matPrice = parseFloat(matTr.querySelector('.est-price-input')?.value) || 0;
-                    const matTotal = qty * matPrice;
+                    const matTotal = matQty * matPrice;
                     const matCell = matTr.querySelector('.est-total-cell');
                     if (matCell) matCell.textContent = matTotal > 0 ? matTotal.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0';
                 });
