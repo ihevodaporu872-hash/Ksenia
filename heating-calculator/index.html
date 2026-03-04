@@ -1477,6 +1477,11 @@
             if (appData.power.buildingArea) document.getElementById('buildingArea').value = appData.power.buildingArea;
             if (appData.power.aboveGroundArea) document.getElementById('aboveGroundArea').value = appData.power.aboveGroundArea;
             if (appData.power.undergroundArea) document.getElementById('undergroundArea').value = appData.power.undergroundArea;
+            if (appData.power.undergroundManual) {
+                undergroundManual = true;
+            } else if (appData.power.buildingArea || appData.power.aboveGroundArea) {
+                document.getElementById('undergroundArea').style.color = '#999';
+            }
             if (appData.power.numFloors) document.getElementById('numFloors').value = appData.power.numFloors;
             if (appData.power.sectionCount) document.getElementById('sectionCount').value = appData.power.sectionCount;
             if (appData.power.totalApartments) document.getElementById('totalApartments').value = appData.power.totalApartments;
@@ -1505,23 +1510,46 @@
         }
 
         // === ОСНОВНЫЕ ХАРАКТЕРИСТИКИ ЗДАНИЯ ===
+        let undergroundManual = false;
+
+        function autoCalcUnderground() {
+            if (undergroundManual) return;
+            const total = parseFloat(document.getElementById('buildingArea').value) || 0;
+            const above = parseFloat(document.getElementById('aboveGroundArea').value) || 0;
+            const diff = Math.max(total - above, 0);
+            const el = document.getElementById('undergroundArea');
+            el.value = diff > 0 ? diff : '';
+            el.style.color = '#999';
+        }
+
+        document.getElementById('buildingArea').addEventListener('input', autoCalcUnderground);
+        document.getElementById('aboveGroundArea').addEventListener('input', autoCalcUnderground);
+
+        document.getElementById('undergroundArea').addEventListener('input', function () {
+            undergroundManual = true;
+            this.style.color = '';
+        });
+
         // Сохранение при изменении любого поля
+        function saveBuildingChars() {
+            appData.power = {
+                buildingArea: parseFloat(document.getElementById('buildingArea').value) || 0,
+                aboveGroundArea: parseFloat(document.getElementById('aboveGroundArea').value) || 0,
+                undergroundArea: parseFloat(document.getElementById('undergroundArea').value) || 0,
+                undergroundManual: undergroundManual,
+                numFloors: parseInt(document.getElementById('numFloors').value) || 0,
+                sectionCount: parseInt(document.getElementById('sectionCount').value) || 1,
+                totalApartments: parseInt(document.getElementById('totalApartments').value) || 0,
+                apt1room: parseInt(document.getElementById('apt1room').value) || 0,
+                apt2room: parseInt(document.getElementById('apt2room').value) || 0,
+                apt3room: parseInt(document.getElementById('apt3room').value) || 0,
+                apt4room: parseInt(document.getElementById('apt4room').value) || 0
+            };
+            saveData();
+        }
         document.querySelectorAll('.building-char').forEach(input => {
-            input.addEventListener('change', () => {
-                appData.power = {
-                    buildingArea: parseFloat(document.getElementById('buildingArea').value) || 0,
-                    aboveGroundArea: parseFloat(document.getElementById('aboveGroundArea').value) || 0,
-                    undergroundArea: parseFloat(document.getElementById('undergroundArea').value) || 0,
-                    numFloors: parseInt(document.getElementById('numFloors').value) || 0,
-                    sectionCount: parseInt(document.getElementById('sectionCount').value) || 1,
-                    totalApartments: parseInt(document.getElementById('totalApartments').value) || 0,
-                    apt1room: parseInt(document.getElementById('apt1room').value) || 0,
-                    apt2room: parseInt(document.getElementById('apt2room').value) || 0,
-                    apt3room: parseInt(document.getElementById('apt3room').value) || 0,
-                    apt4room: parseInt(document.getElementById('apt4room').value) || 0
-                };
-                saveData();
-            });
+            input.addEventListener('change', saveBuildingChars);
+            input.addEventListener('input', saveBuildingChars);
         });
 
         // Связь: изменение количества квартир → пересчёт арматуры + решеток
