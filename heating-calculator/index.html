@@ -2753,8 +2753,9 @@
             const zoneTotals = {};
             zones.forEach(z => {
                 if (z.key === 'apartments') {
+                    const exhMul = getAptCount() || 1;
                     const tSup = calcPivotTotal(appData.fittings.zonePivots.apartmentsSup || {}, GENERAL_ROWS, aptCount, APT_SIZE_GROUPS, 'apartmentsSup');
-                    const tExh = calcPivotTotal(appData.fittings.zonePivots.apartmentsExh || {}, GENERAL_ROWS, aptCount, APT_SIZE_GROUPS, 'apartmentsExh');
+                    const tExh = calcPivotTotal(appData.fittings.zonePivots.apartmentsExh || {}, GENERAL_ROWS, exhMul, APT_SIZE_GROUPS, 'apartmentsExh');
                     zoneTotals[z.key] = { count: tSup.count + tExh.count, area: tSup.area + tExh.area };
                 } else if (z.key === 'mop') {
                     zoneTotals[z.key] = calcMopTotal();
@@ -2824,10 +2825,13 @@
                             <i class="bi bi-link-45deg"></i> авторасчёт из характеристик · ручной ввод приоритетнее · ИТОГО = значение × комнаты
                         </small>
                     </div>`;
-                    html += `<h6 class="mt-3 mb-2"><i class="bi bi-box-arrow-in-down me-1 text-primary"></i>Приточные системы в квартирах</h6>`;
+                    const exhCount = getAptCount() || 1;
+                    html += `<h6 class="mt-3 mb-2"><i class="bi bi-box-arrow-in-down me-1 text-primary"></i>Приточные системы в квартирах
+                        <small class="text-muted fw-normal ms-2" style="font-size:0.78rem;">расчёт от кол-ва комнат (×${aptCount})</small></h6>`;
                     html += buildApartmentsPivotTable(appData.fittings.zonePivots.apartmentsSup || {}, aptCount, 'apartmentsSup');
-                    html += `<h6 class="mt-3 mb-2"><i class="bi bi-box-arrow-up me-1 text-success"></i>Вытяжные системы в квартирах</h6>`;
-                    html += buildApartmentsPivotTable(appData.fittings.zonePivots.apartmentsExh || {}, aptCount, 'apartmentsExh');
+                    html += `<h6 class="mt-3 mb-2"><i class="bi bi-box-arrow-up me-1 text-success"></i>Вытяжные системы в квартирах
+                        <small class="text-muted fw-normal ms-2" style="font-size:0.78rem;">расчёт от кол-ва квартир (×${exhCount})</small></h6>`;
+                    html += buildApartmentsPivotTable(appData.fittings.zonePivots.apartmentsExh || {}, exhCount, 'apartmentsExh');
 
                 } else if (zone.key === 'mop') {
                     // --- МОП: два вложенных под-аккордеона ---
@@ -3006,7 +3010,8 @@
 
         // Получить множитель для группы
         function getGroupMultiplier(group) {
-            if (group === 'apartments' || group === 'apartmentsSup' || group === 'apartmentsExh') return getAptMultiplier();
+            if (group === 'apartmentsSup') return getAptMultiplier();
+            if (group === 'apartmentsExh') return getAptCount() || 1;
             if (group === 'mop') return getMopMultiplier();
             if (group === 'smokeTypical') return getSmokeMultiplier();
             return 1;
@@ -3049,9 +3054,8 @@
             let gCount = 0;
 
             const zp = appData.fittings.zonePivots || {};
-            const aptMul = getAptMultiplier();
-            const tSup = calcPivotTotal(zp.apartmentsSup || {}, GENERAL_ROWS, aptMul, APT_SIZE_GROUPS, 'apartmentsSup');
-            const tExh = calcPivotTotal(zp.apartmentsExh || {}, GENERAL_ROWS, aptMul, APT_SIZE_GROUPS, 'apartmentsExh');
+            const tSup = calcPivotTotal(zp.apartmentsSup || {}, GENERAL_ROWS, getAptMultiplier(), APT_SIZE_GROUPS, 'apartmentsSup');
+            const tExh = calcPivotTotal(zp.apartmentsExh || {}, GENERAL_ROWS, getAptCount() || 1, APT_SIZE_GROUPS, 'apartmentsExh');
             gCount += tSup.count + tExh.count;
 
             const tMop = calcMopTotal();
@@ -3131,8 +3135,8 @@
                 if (row === 'no' && document.getElementById('grGenRect05')) syncGenGrillesFromFittings();
             } else if (isAptGroup(group)) {
                 // Apartment sub-group changed — refresh combined apartments badge
-                const tSup = calcPivotTotal(appData.fittings.zonePivots.apartmentsSup || {}, GENERAL_ROWS, mul, APT_SIZE_GROUPS, 'apartmentsSup');
-                const tExh = calcPivotTotal(appData.fittings.zonePivots.apartmentsExh || {}, GENERAL_ROWS, mul, APT_SIZE_GROUPS, 'apartmentsExh');
+                const tSup = calcPivotTotal(appData.fittings.zonePivots.apartmentsSup || {}, GENERAL_ROWS, getAptMultiplier(), APT_SIZE_GROUPS, 'apartmentsSup');
+                const tExh = calcPivotTotal(appData.fittings.zonePivots.apartmentsExh || {}, GENERAL_ROWS, getAptCount() || 1, APT_SIZE_GROUPS, 'apartmentsExh');
                 const zb = document.getElementById('fittingZoneBadge_apartments');
                 if (zb) zb.textContent = tSup.count + tExh.count;
                 refreshGeneralHeader();
@@ -3239,11 +3243,10 @@
         function updateFittingsTotals() {
             let gCount = 0, gArea = 0;
 
-            // Квартиры (приточные + вытяжные)
+            // Квартиры (приточные × комнаты, вытяжные × квартиры)
             const zp = appData.fittings.zonePivots || {};
-            const aptMul = getAptMultiplier();
-            const tSup = calcPivotTotal(zp.apartmentsSup || {}, GENERAL_ROWS, aptMul, APT_SIZE_GROUPS, 'apartmentsSup');
-            const tExh = calcPivotTotal(zp.apartmentsExh || {}, GENERAL_ROWS, aptMul, APT_SIZE_GROUPS, 'apartmentsExh');
+            const tSup = calcPivotTotal(zp.apartmentsSup || {}, GENERAL_ROWS, getAptMultiplier(), APT_SIZE_GROUPS, 'apartmentsSup');
+            const tExh = calcPivotTotal(zp.apartmentsExh || {}, GENERAL_ROWS, getAptCount() || 1, APT_SIZE_GROUPS, 'apartmentsExh');
             gCount += tSup.count + tExh.count; gArea += tSup.area + tExh.area;
 
             // МОП (типовой * этажи + нетиповой)
@@ -3644,12 +3647,16 @@
             const allCols = ['d315', 'p1000', 'p1600', 'p2400', 'p3600'];
 
             if (generalOnly) {
-                // Квартиры (приточные + вытяжные)
-                const aptMul = parseInt(document.getElementById('totalApartments').value) || 1;
+                // Квартиры приточные (× кол-во комнат)
+                const supMul = getAptMultiplier();
                 const aptCols = ['d315', 'p1000']; // APT_SIZE_GROUPS
-                [zp.apartmentsSup || {}, zp.apartmentsExh || {}].forEach(aptPivot => {
-                    aptCols.forEach(c => { total += ((aptPivot[rowKey] && aptPivot[rowKey][c]) || 0) * aptMul; });
-                });
+                const supPivot = zp.apartmentsSup || {};
+                aptCols.forEach(c => { total += ((supPivot[rowKey] && supPivot[rowKey][c]) || 0) * supMul; });
+
+                // Квартиры вытяжные (× кол-во квартир)
+                const exhMul = getAptCount() || 1;
+                const exhPivot = zp.apartmentsExh || {};
+                aptCols.forEach(c => { total += ((exhPivot[rowKey] && exhPivot[rowKey][c]) || 0) * exhMul; });
 
                 // МОП типовой
                 const mopPivot = zp.mop || {};
