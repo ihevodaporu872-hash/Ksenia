@@ -2462,11 +2462,13 @@
         }
 
         // Специализированная таблица для квартир: базовые (ДК, НО) + опциональные (ШГ, CAV)
-        function buildApartmentsPivotTable(pivot, multiplier) {
+        function buildApartmentsPivotTable(pivot, multiplier, group) {
+            group = group || 'apartments';
             multiplier = multiplier || 1;
             const showHints = multiplier > 1;
             const baseKeys = ['dk', 'no'];
-            const models = appData.fittings.aptModels || {};
+            const allModels = appData.fittings.aptModels || {};
+            const models = allModels[group] || {};
 
             let html = `<div class="fittings-table-wrap">
                 <table class="table table-sm table-bordered mb-0" style="font-size:0.85rem;table-layout:fixed;width:100%;">
@@ -2485,14 +2487,14 @@
                 let rowSum = 0;
                 const isBase = baseKeys.includes(r.key);
                 const isOpt = OPTIONAL_KEYS.includes(r.key);
-                const isVis = !isOpt || isExtraVisible('apartments', r.key);
+                const isVis = !isOpt || isExtraVisible(group, r.key);
 
-                html += `<tr${isOpt ? ` data-extra-group="apartments" data-extra-key="${r.key}"` : ''}
+                html += `<tr${isOpt ? ` data-extra-group="${group}" data-extra-key="${r.key}"` : ''}
                     style="${isVis ? '' : 'display:none;'}">`;
                 html += `<td>`;
                 if (isOpt && isVis) {
                     html += `<a href="#" class="text-danger me-1" style="font-size:0.85rem;"
-                        onclick="hideExtraRow('apartments','${r.key}');return false;"
+                        onclick="hideExtraRow('${group}','${r.key}');return false;"
                         title="Скрыть строку"><i class="bi bi-x-circle"></i></a>`;
                 }
                 html += `<strong>${r.name}</strong>`;
@@ -2514,7 +2516,7 @@
                         html += `<td style="text-align:center;background:rgba(76,175,80,0.07);">
                             <input type="number" class="form-control form-control-sm text-center"
                                 value="${val}" min="0"
-                                data-group="apartments" data-row="${r.key}" data-col="${sg.key}"
+                                data-group="${group}" data-row="${r.key}" data-col="${sg.key}"
                                 oninput="updatePivotCell(this)"
                                 style="width:80px;margin:0 auto;background:rgba(76,175,80,0.12);border-color:rgba(76,175,80,0.3);">`;
                     } else {
@@ -2526,7 +2528,7 @@
 
                         html += `<td style="text-align:center;vertical-align:middle;">
                             <select class="form-select form-select-sm" style="font-size:0.75rem;padding:2px 20px 2px 4px;"
-                                data-group="apartments" data-row="${r.key}" data-col="${sg.key}"
+                                data-group="${group}" data-row="${r.key}" data-col="${sg.key}"
                                 onchange="updateAptModel(this)">
                                 <option value="">\u2014 нет \u2014</option>`;
                         modelList.forEach(m => {
@@ -2536,7 +2538,7 @@
                             <div class="apt-model-qty" style="margin-top:2px;${hasModel ? '' : 'display:none;'}">
                                 <input type="number" class="form-control form-control-sm text-center"
                                     value="${hasModel ? val || 1 : 0}" min="0"
-                                    data-group="apartments" data-row="${r.key}" data-col="${sg.key}"
+                                    data-group="${group}" data-row="${r.key}" data-col="${sg.key}"
                                     oninput="updatePivotCell(this)" style="width:80px;margin:0 auto;">`;
                         if (showHints) {
                             html += `<small class="text-muted apt-hint" data-row="${r.key}" data-col="${sg.key}"
@@ -2554,11 +2556,11 @@
                 });
 
                 html += `<td style="text-align:center;font-weight:700;${isBase ? 'background:rgba(76,175,80,0.07);' : ''}" class="pivot-row-total"
-                    data-group="apartments" data-row="${r.key}">${rowSum * multiplier}</td></tr>`;
+                    data-group="${group}" data-row="${r.key}">${rowSum * multiplier}</td></tr>`;
             });
 
             html += '</tbody></table>';
-            html += buildExtraDropdown('apartments');
+            html += buildExtraDropdown(group);
             html += '</div>';
             return html;
         }
@@ -2678,8 +2680,10 @@
                 appData.fittings.zonePivots = {};
                 zones.forEach(z => {
                     if (z.key === 'apartments') {
-                        // Квартиры: только d315 и p1000, крупные сечения → p1000
-                        appData.fittings.zonePivots[z.key] = computeFittingsPivot(z.items, GENERAL_ROWS, APT_SIZE_GROUPS, true);
+                        // Квартиры: приточные (П) и вытяжные (В) — раздельные таблицы
+                        const aptItems = z.items;
+                        appData.fittings.zonePivots.apartmentsSup = computeFittingsPivot(aptItems.filter(s => s.system.startsWith('П')), GENERAL_ROWS, APT_SIZE_GROUPS, true);
+                        appData.fittings.zonePivots.apartmentsExh = computeFittingsPivot(aptItems.filter(s => s.system.startsWith('В')), GENERAL_ROWS, APT_SIZE_GROUPS, true);
                     } else if (z.key === 'rent') {
                         // Аренда: пустая таблица + НО = кол-во транзитных систем
                         appData.fittings.zonePivots[z.key] = computeFittingsPivot([], GENERAL_ROWS);
@@ -2688,12 +2692,18 @@
                         appData.fittings.zonePivots[z.key] = computeFittingsPivot(z.items, GENERAL_ROWS);
                     }
                 });
-                // Базовая комплектация квартир: ДК и НО по 1 шт. в d315
-                const aptP = appData.fittings.zonePivots.apartments;
-                if (aptP) {
-                    if (!aptP.dk.d315) aptP.dk.d315 = 1;
-                    if (!aptP.no.d315) aptP.no.d315 = 1;
-                }
+                // Базовая комплектация квартир: ДК=1 в приточных, НО=1 в вытяжных
+                const aptSup = appData.fittings.zonePivots.apartmentsSup;
+                if (aptSup && !aptSup.dk.d315) aptSup.dk.d315 = 1;
+                const aptExh = appData.fittings.zonePivots.apartmentsExh;
+                if (aptExh && !aptExh.no.d315) aptExh.no.d315 = 1;
+            }
+            // Миграция: apartments → apartmentsSup + apartmentsExh
+            if (appData.fittings.zonePivots.apartments && !appData.fittings.zonePivots.apartmentsSup) {
+                appData.fittings.zonePivots.apartmentsSup = appData.fittings.zonePivots.apartments;
+                appData.fittings.zonePivots.apartmentsExh = computeFittingsPivot([], GENERAL_ROWS, APT_SIZE_GROUPS, true);
+                appData.fittings.zonePivots.apartmentsExh.no.d315 = 1;
+                delete appData.fittings.zonePivots.apartments;
             }
             // Одноразовый сброс аренды: защита от устаревших значений в localStorage
             if (!appData.fittings.rentReset) {
@@ -2720,8 +2730,15 @@
             if (!appData.fittings.smokeFloors) {
                 appData.fittings.smokeFloors = parseInt(document.getElementById('numFloors').value) || 1;
             }
-            // Модели опциональной арматуры квартир
+            // Модели опциональной арматуры квартир (keyed by group)
             if (!appData.fittings.aptModels) appData.fittings.aptModels = {};
+            // Миграция: старый формат {shg:{},cav:{}} → {apartmentsSup:{},apartmentsExh:{}}
+            if (appData.fittings.aptModels.shg || appData.fittings.aptModels.cav) {
+                const old = appData.fittings.aptModels;
+                appData.fittings.aptModels = { apartmentsSup: old, apartmentsExh: {} };
+            }
+            if (!appData.fittings.aptModels.apartmentsSup) appData.fittings.aptModels.apartmentsSup = {};
+            if (!appData.fittings.aptModels.apartmentsExh) appData.fittings.aptModels.apartmentsExh = {};
             if (!appData.fittings.visibleExtras) appData.fittings.visibleExtras = {};
 
             // Множители
@@ -2733,7 +2750,9 @@
             const zoneTotals = {};
             zones.forEach(z => {
                 if (z.key === 'apartments') {
-                    zoneTotals[z.key] = calcPivotTotal(appData.fittings.zonePivots[z.key] || {}, GENERAL_ROWS, aptCount, APT_SIZE_GROUPS, 'apartments');
+                    const tSup = calcPivotTotal(appData.fittings.zonePivots.apartmentsSup || {}, GENERAL_ROWS, aptCount, APT_SIZE_GROUPS, 'apartmentsSup');
+                    const tExh = calcPivotTotal(appData.fittings.zonePivots.apartmentsExh || {}, GENERAL_ROWS, aptCount, APT_SIZE_GROUPS, 'apartmentsExh');
+                    zoneTotals[z.key] = { count: tSup.count + tExh.count, area: tSup.area + tExh.area };
                 } else if (z.key === 'mop') {
                     zoneTotals[z.key] = calcMopTotal();
                 } else {
@@ -2778,7 +2797,7 @@
                         <div class="accordion-body p-2">`;
 
                 if (zone.key === 'apartments') {
-                    // --- Квартиры: индикатор количества + таблица ---
+                    // --- Квартиры: индикатор количества + две таблицы (Приточные / Вытяжные) ---
                     html += `<div class="d-flex align-items-center mb-2">
                         <label class="me-2 fw-bold" style="font-size:0.85rem;">Количество квартир:</label>
                         <span class="badge bg-secondary fs-6" id="aptCountDisplay">${aptCount}</span>
@@ -2786,7 +2805,10 @@
                             <i class="bi bi-link-45deg"></i> данные из «Основных характеристик здания» · значения в ячейках — на 1 квартиру
                         </small>
                     </div>`;
-                    html += buildApartmentsPivotTable(appData.fittings.zonePivots.apartments || {}, aptCount);
+                    html += `<h6 class="mt-3 mb-2"><i class="bi bi-box-arrow-in-down me-1 text-primary"></i>Приточные системы в квартирах</h6>`;
+                    html += buildApartmentsPivotTable(appData.fittings.zonePivots.apartmentsSup || {}, aptCount, 'apartmentsSup');
+                    html += `<h6 class="mt-3 mb-2"><i class="bi bi-box-arrow-up me-1 text-success"></i>Вытяжные системы в квартирах</h6>`;
+                    html += buildApartmentsPivotTable(appData.fittings.zonePivots.apartmentsExh || {}, aptCount, 'apartmentsExh');
 
                 } else if (zone.key === 'mop') {
                     // --- МОП: два вложенных под-аккордеона ---
@@ -2939,11 +2961,13 @@
 
         // Получить множитель для группы
         function getGroupMultiplier(group) {
-            if (group === 'apartments') return getAptMultiplier();
+            if (group === 'apartments' || group === 'apartmentsSup' || group === 'apartmentsExh') return getAptMultiplier();
             if (group === 'mop') return getMopMultiplier();
             if (group === 'smokeTypical') return getSmokeMultiplier();
             return 1;
         }
+
+        function isAptGroup(g) { return g === 'apartmentsSup' || g === 'apartmentsExh'; }
 
         // Обновить заголовки МОП (под-аккордеоны + общий)
         function refreshMopHeaders() {
@@ -2979,8 +3003,11 @@
         function refreshGeneralHeader() {
             let gCount = 0;
 
-            const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier(), APT_SIZE_GROUPS, 'apartments');
-            gCount += tApt.count;
+            const zp = appData.fittings.zonePivots || {};
+            const aptMul = getAptMultiplier();
+            const tSup = calcPivotTotal(zp.apartmentsSup || {}, GENERAL_ROWS, aptMul, APT_SIZE_GROUPS, 'apartmentsSup');
+            const tExh = calcPivotTotal(zp.apartmentsExh || {}, GENERAL_ROWS, aptMul, APT_SIZE_GROUPS, 'apartmentsExh');
+            gCount += tSup.count + tExh.count;
 
             const tMop = calcMopTotal();
             gCount += tMop.count;
@@ -3027,7 +3054,7 @@
             else if (group === 'mopNontypical') pivot = appData.fittings.mopNontypicalPivot;
             else pivot = appData.fittings.zonePivots[group];
 
-            const sgList = (group === 'apartments') ? APT_SIZE_GROUPS : SIZE_GROUPS;
+            const sgList = isAptGroup(group) ? APT_SIZE_GROUPS : SIZE_GROUPS;
             let rowTotal = 0;
             sgList.forEach(sg => {
                 rowTotal += (pivot[row] && pivot[row][sg.key]) || 0;
@@ -3057,12 +3084,17 @@
                 refreshGeneralHeader();
                 // Обновление решеток общеобменки (клапаны НО из аренды)
                 if (row === 'no' && document.getElementById('grGenRect05')) syncGenGrillesFromFittings();
+            } else if (isAptGroup(group)) {
+                // Apartment sub-group changed — refresh combined apartments badge
+                const tSup = calcPivotTotal(appData.fittings.zonePivots.apartmentsSup || {}, GENERAL_ROWS, mul, APT_SIZE_GROUPS, 'apartmentsSup');
+                const tExh = calcPivotTotal(appData.fittings.zonePivots.apartmentsExh || {}, GENERAL_ROWS, mul, APT_SIZE_GROUPS, 'apartmentsExh');
+                const zb = document.getElementById('fittingZoneBadge_apartments');
+                if (zb) zb.textContent = tSup.count + tExh.count;
+                refreshGeneralHeader();
             } else {
-                const zoneSg = (group === 'apartments') ? APT_SIZE_GROUPS : SIZE_GROUPS;
-                const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS, mul, zoneSg, group);
+                const zt = calcPivotTotal(appData.fittings.zonePivots[group], GENERAL_ROWS, mul, SIZE_GROUPS, group);
                 const zb = document.getElementById(`fittingZoneBadge_${group}`);
                 if (zb) zb.textContent = zt.count;
-
                 refreshGeneralHeader();
             }
 
@@ -3072,13 +3104,15 @@
         window.updatePivotCell = updatePivotCell;
 
         function updateAptModel(select) {
+            const group = select.dataset.group || 'apartmentsSup';
             const row = select.dataset.row;
             const col = select.dataset.col;
             const model = select.value;
 
             if (!appData.fittings.aptModels) appData.fittings.aptModels = {};
-            if (!appData.fittings.aptModels[row]) appData.fittings.aptModels[row] = {};
-            appData.fittings.aptModels[row][col] = model;
+            if (!appData.fittings.aptModels[group]) appData.fittings.aptModels[group] = {};
+            if (!appData.fittings.aptModels[group][row]) appData.fittings.aptModels[group][row] = {};
+            appData.fittings.aptModels[group][row][col] = model;
 
             const td = select.closest('td');
             const qtyDiv = td.querySelector('.apt-model-qty');
@@ -3123,7 +3157,7 @@
             else if (group === 'smokeNontypical') pivot = appData.fittings.smokeNontypicalPivot || {};
             else if (group === 'mopNontypical') pivot = appData.fittings.mopNontypicalPivot || {};
             else pivot = (appData.fittings.zonePivots || {})[group] || {};
-            const sgList = (group === 'apartments') ? APT_SIZE_GROUPS : SIZE_GROUPS;
+            const sgList = isAptGroup(group) ? APT_SIZE_GROUPS : SIZE_GROUPS;
             let hasData = false;
             sgList.forEach(sg => {
                 if (pivot[rowKey] && pivot[rowKey][sg.key] > 0) hasData = true;
@@ -3160,9 +3194,12 @@
         function updateFittingsTotals() {
             let gCount = 0, gArea = 0;
 
-            // Квартиры
-            const tApt = calcPivotTotal((appData.fittings.zonePivots || {}).apartments || {}, GENERAL_ROWS, getAptMultiplier(), APT_SIZE_GROUPS, 'apartments');
-            gCount += tApt.count; gArea += tApt.area;
+            // Квартиры (приточные + вытяжные)
+            const zp = appData.fittings.zonePivots || {};
+            const aptMul = getAptMultiplier();
+            const tSup = calcPivotTotal(zp.apartmentsSup || {}, GENERAL_ROWS, aptMul, APT_SIZE_GROUPS, 'apartmentsSup');
+            const tExh = calcPivotTotal(zp.apartmentsExh || {}, GENERAL_ROWS, aptMul, APT_SIZE_GROUPS, 'apartmentsExh');
+            gCount += tSup.count + tExh.count; gArea += tSup.area + tExh.area;
 
             // МОП (типовой * этажи + нетиповой)
             const tMop = calcMopTotal();
@@ -3562,11 +3599,12 @@
             const allCols = ['d315', 'p1000', 'p1600', 'p2400', 'p3600'];
 
             if (generalOnly) {
-                // Квартиры
-                const aptPivot = zp.apartments || {};
+                // Квартиры (приточные + вытяжные)
                 const aptMul = parseInt(document.getElementById('totalApartments').value) || 1;
                 const aptCols = ['d315', 'p1000']; // APT_SIZE_GROUPS
-                aptCols.forEach(c => { total += ((aptPivot[rowKey] && aptPivot[rowKey][c]) || 0) * aptMul; });
+                [zp.apartmentsSup || {}, zp.apartmentsExh || {}].forEach(aptPivot => {
+                    aptCols.forEach(c => { total += ((aptPivot[rowKey] && aptPivot[rowKey][c]) || 0) * aptMul; });
+                });
 
                 // МОП типовой
                 const mopPivot = zp.mop || {};
