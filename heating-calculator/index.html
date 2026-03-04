@@ -1026,7 +1026,7 @@
                                     data-bs-toggle="collapse" data-bs-target="#estSmoke">
                                     <i class="bi bi-shield-exclamation me-2 text-danger"></i>
                                     <span>Противодымная вентиляция</span>
-                                    <span class="ms-auto me-3 fw-bold" style="color:#6c757d;font-size:0.85em;" id="estSmokeSectionTotal"></span>
+                                    <span class="ms-auto me-3" style="color:#6c757d;font-size:0.78em;" id="estSmokeSectionTotal"></span>
                                 </button>
                             </h2>
                             <div id="estSmoke" class="accordion-collapse collapse show"
@@ -1163,7 +1163,7 @@
                                     data-bs-toggle="collapse" data-bs-target="#estGeneral">
                                     <i class="bi bi-wind me-2"></i>
                                     <span>Общеобменная система</span>
-                                    <span class="ms-auto me-3 fw-bold" style="color:#6c757d;font-size:0.85em;" id="estGenSectionTotal"></span>
+                                    <span class="ms-auto me-3" style="color:#6c757d;font-size:0.78em;" id="estGenSectionTotal"></span>
                                 </button>
                             </h2>
                             <div id="estGeneral" class="accordion-collapse collapse"
@@ -3413,17 +3413,28 @@
         window.calcEstRow = calcEstRow;
 
         function calcEstSectionTotal(tbody) {
-            let sectionSum = 0;
-            tbody.querySelectorAll('.est-total-cell').forEach(cell => {
-                const raw = cell.textContent.replace(/\s/g, '').replace(',', '.');
-                sectionSum += parseFloat(raw) || 0;
+            let workSum = 0, matSum = 0;
+            tbody.querySelectorAll('tr:not(.est-section-total):not(.est-row-group)').forEach(tr => {
+                const cell = tr.querySelector('.est-total-cell');
+                if (!cell) return;
+                const val = parseFloat(cell.textContent.replace(/\s/g, '').replace(',', '.')) || 0;
+                if (tr.classList.contains('est-row-work')) workSum += val;
+                else if (tr.classList.contains('est-row-mat')) matSum += val;
             });
+            const sectionSum = workSum + matSum;
             const section = tbody.dataset.section;
             const sumEl = document.getElementById(section === 'smk' ? 'estSmkSectionSum' : 'estGenSectionSum');
             if (sumEl) sumEl.textContent = sectionSum > 0 ? sectionSum.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0';
 
+            const fmt = v => v > 0 ? v.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0';
             const badgeEl = document.getElementById(section === 'smk' ? 'estSmokeSectionTotal' : 'estGenSectionTotal');
-            if (badgeEl) badgeEl.textContent = sectionSum > 0 ? sectionSum.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' руб.' : '';
+            if (badgeEl) {
+                if (sectionSum > 0) {
+                    badgeEl.innerHTML = `Работы: ${fmt(workSum)} руб. | Материалы: ${fmt(matSum)} руб. | <b style="font-size:1.1em;">Всего: ${fmt(sectionSum)} руб.</b>`;
+                } else {
+                    badgeEl.innerHTML = '';
+                }
+            }
         }
 
         function recalcAllEstTotals() {
