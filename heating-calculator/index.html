@@ -620,11 +620,6 @@
                                         <span class="header-stat" id="smokeStats">Систем: 0 | Расход: 0 м³/ч</span>
                                     </span>
                                 </button>
-                                <div class="velocity-inline" onclick="event.stopPropagation()">
-                                    <label>v:</label>
-                                    <input type="number" class="section-velocity" id="velocitySmoke" value="10" min="1" max="15" step="0.5" data-section="smoke">
-                                    <span>м/с</span>
-                                </div>
                             </h2>
                             <div id="smokeVent" class="accordion-collapse collapse" data-bs-parent="#ductsAccordion">
                                 <div class="accordion-body p-2">
@@ -1582,9 +1577,12 @@
                 residential: 'velocityResidential',
                 parking: 'velocityParking',
                 other: 'velocityOther',
-                smoke: 'velocitySmoke'
+                smoke_supply: 'velocitySmokeSupply',
+                smoke_extract: 'velocitySmokeExtract'
             };
-            const defaults = { rent: 5, residential: 3, parking: 8, other: 3, smoke: 10 };
+            const defaults = { rent: 5, residential: 3, parking: 8, other: 3, smoke_supply: 8, smoke_extract: 8 };
+            // Backward compat: 'smoke' without sub-type falls back to supply default
+            if (section === 'smoke') section = 'smoke_supply';
             return parseFloat(document.getElementById(velocityIds[section])?.value) || defaults[section] || 5;
         }
 
@@ -1790,7 +1788,8 @@
                 if (!system && !flow) continue;
 
                 const section = getSection(purpose);
-                const ductParams = calculateDuctParams(flow, section);
+                const velSection = section === 'smoke' ? (getSystemType(system) === 'supply' ? 'smoke_supply' : 'smoke_extract') : section;
+                const ductParams = calculateDuctParams(flow, velSection);
                 const routeLength = rawLength > 0 ? rawLength : getRouteLength(1);
 
                 systemsData[section].push({
@@ -1833,7 +1832,8 @@
             return 'supply';
         }
 
-        function renderTableRows(systems, section) {
+        function renderTableRows(systems, section, velSection) {
+            const effectiveSection = velSection || section;
             return systems.map(({ s, idx }) => {
                 const routeLength = s.routeLength || getRouteLength(s.startFloor || 1);
 
@@ -1866,6 +1866,7 @@
                 }
 
                 const surfaceArea = s.perimeter * routeLength;
+                const velAttr = effectiveSection !== section ? ` data-vel-section="${effectiveSection}"` : '';
                 return `
                 <tr>
                     <td>${s.system}</td>
@@ -1873,7 +1874,7 @@
                     <td>
                         <input type="number" class="flow-input"
                             value="${s.flow}"
-                            data-section="${section}"
+                            data-section="${section}"${velAttr}
                             data-index="${idx}"
                             onchange="updateFlow(this)">
                     </td>
@@ -1883,7 +1884,7 @@
                         <input type="number" class="flow-input" style="width:75px;"
                             value="${routeLength}"
                             min="0" step="0.1"
-                            data-section="${section}"
+                            data-section="${section}"${velAttr}
                             data-index="${idx}"
                             onchange="updateRouteLength(this)">
                     </td>
@@ -1921,23 +1922,41 @@
             const supply = systems.map((s, idx) => ({ s, idx })).filter(({ s }) => getSystemType(s.system) === 'supply');
             const extract = systems.map((s, idx) => ({ s, idx })).filter(({ s }) => getSystemType(s.system) === 'extract');
 
-            const supplyRows = renderTableRows(supply, section);
-            const extractRows = renderTableRows(extract, section);
+            // For smoke section, use sub-sections with individual velocities
+            const supVelSection = section === 'smoke' ? 'smoke_supply' : section;
+            const exhVelSection = section === 'smoke' ? 'smoke_extract' : section;
+
+            const supplyRows = renderTableRows(supply, section, supVelSection);
+            const extractRows = renderTableRows(extract, section, exhVelSection);
             const emptySupply = systems.length === 0 ? 'Нет данных. Загрузите Excel файл.' : 'Приточные системы не найдены';
             const emptyExtract = systems.length === 0 ? 'Нет данных. Загрузите Excel файл.' : 'Вытяжные системы не найдены';
 
-            const supplyS = calcGroupSurface(supply, section);
-            const extractS = calcGroupSurface(extract, section);
+            const supplyS = calcGroupSurface(supply, supVelSection);
+            const extractS = calcGroupSurface(extract, exhVelSection);
+
+            // Velocity inputs for smoke sub-headers
+            const isSmoke = section === 'smoke';
+            const supVelVal = isSmoke ? getSectionVelocity('smoke_supply') : null;
+            const exhVelVal = isSmoke ? getSectionVelocity('smoke_extract') : null;
+            const supVelHtml = isSmoke ? `<span class="velocity-inline ms-auto me-1" style="display:inline-flex;" onclick="event.stopPropagation()">
+                <label>v:</label>
+                <input type="number" class="section-velocity" id="velocitySmokeSupply" value="${supVelVal}" min="1" max="15" step="0.5" data-section="smoke_supply">
+                <span>м/с</span></span>` : '';
+            const exhVelHtml = isSmoke ? `<span class="velocity-inline ms-auto me-1" style="display:inline-flex;" onclick="event.stopPropagation()">
+                <label>v:</label>
+                <input type="number" class="section-velocity" id="velocitySmokeExtract" value="${exhVelVal}" min="1" max="15" step="0.5" data-section="smoke_extract">
+                <span>м/с</span></span>` : '';
 
             container.innerHTML = `
                 <div class="accordion nested-accordion" id="${section}SubAccordion">
                     <div class="accordion-item">
-                        <h2 class="accordion-header">
+                        <h2 class="accordion-header d-flex align-items-center">
                             <button class="accordion-button py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#${section}Supply">
                                 <i class="bi bi-arrow-down-circle me-1" style="color:#28a745;"></i> Приточные системы
                                 <span class="badge sub-badge" style="background:#28a745;">${supply.length}</span>
                                 <span class="area-total">Σ S: ${supplyS.toFixed(1)} м²</span>
                             </button>
+                            ${supVelHtml}
                         </h2>
                         <div id="${section}Supply" class="accordion-collapse collapse show">
                             <div class="accordion-body p-1">
@@ -1946,12 +1965,13 @@
                         </div>
                     </div>
                     <div class="accordion-item">
-                        <h2 class="accordion-header">
+                        <h2 class="accordion-header d-flex align-items-center">
                             <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#${section}Extract">
                                 <i class="bi bi-arrow-up-circle me-1" style="color:#0d6efd;"></i> Вытяжные системы
                                 <span class="badge sub-badge" style="background:#0d6efd;">${extract.length}</span>
                                 <span class="area-total">Σ S: ${extractS.toFixed(1)} м²</span>
                             </button>
+                            ${exhVelHtml}
                         </h2>
                         <div id="${section}Extract" class="accordion-collapse collapse show">
                             <div class="accordion-body p-1">
@@ -1960,6 +1980,16 @@
                         </div>
                     </div>
                 </div>`;
+
+            // Attach velocity change listeners for smoke sub-inputs
+            if (isSmoke) {
+                ['velocitySmokeSupply', 'velocitySmokeExtract'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener('change', () => {
+                        recalculateSmokeSection();
+                    });
+                });
+            }
         }
 
         function renderAllTables() {
@@ -1977,10 +2007,11 @@
         // Обновление расхода при редактировании
         function updateFlow(input) {
             const section = input.dataset.section;
+            const velSection = input.dataset.velSection || section;
             const index = parseInt(input.dataset.index);
             const newFlow = cleanNumber(input.value);
 
-            const ductParams = calculateDuctParams(newFlow, section);
+            const ductParams = calculateDuctParams(newFlow, velSection);
             systemsData[section][index].flow = newFlow;
             Object.assign(systemsData[section][index], ductParams);
 
@@ -2118,8 +2149,24 @@
 
         // Пересчет при изменении скорости в секции
         function recalculateSection(section) {
+            if (section === 'smoke') {
+                recalculateSmokeSection();
+                return;
+            }
             systemsData[section].forEach(s => {
                 const ductParams = calculateDuctParams(s.flow, section);
+                Object.assign(s, ductParams);
+            });
+            renderAllTables();
+            updateAllStats();
+            saveSystemsData();
+        }
+
+        function recalculateSmokeSection() {
+            systemsData.smoke.forEach(s => {
+                const type = getSystemType(s.system);
+                const velSection = type === 'supply' ? 'smoke_supply' : 'smoke_extract';
+                const ductParams = calculateDuctParams(s.flow, velSection);
                 Object.assign(s, ductParams);
             });
             renderAllTables();
@@ -2160,7 +2207,8 @@
                 residential: getSectionVelocity('residential'),
                 parking: getSectionVelocity('parking'),
                 other: getSectionVelocity('other'),
-                smoke: getSectionVelocity('smoke')
+                smoke_supply: getSectionVelocity('smoke_supply'),
+                smoke_extract: getSectionVelocity('smoke_extract')
             };
             saveData();
         }
@@ -2175,10 +2223,24 @@
                 if (appData.ducts.velocities.residential) document.getElementById('velocityResidential').value = appData.ducts.velocities.residential;
                 if (appData.ducts.velocities.parking) document.getElementById('velocityParking').value = appData.ducts.velocities.parking;
                 if (appData.ducts.velocities.other) document.getElementById('velocityOther').value = appData.ducts.velocities.other;
-                if (appData.ducts.velocities.smoke) document.getElementById('velocitySmoke').value = appData.ducts.velocities.smoke;
+                // smoke velocities are restored after renderAllTables (dynamic inputs)
             }
             renderAllTables();
+            // Restore smoke velocities (dynamic inputs created by renderAllTables)
+            if (appData.ducts.velocities) {
+                const supEl = document.getElementById('velocitySmokeSupply');
+                const exhEl = document.getElementById('velocitySmokeExtract');
+                if (supEl && appData.ducts.velocities.smoke_supply) supEl.value = appData.ducts.velocities.smoke_supply;
+                if (exhEl && appData.ducts.velocities.smoke_extract) exhEl.value = appData.ducts.velocities.smoke_extract;
+                // Migrate old single smoke velocity
+                if (appData.ducts.velocities.smoke && !appData.ducts.velocities.smoke_supply) {
+                    if (supEl) supEl.value = appData.ducts.velocities.smoke;
+                    if (exhEl) exhEl.value = appData.ducts.velocities.smoke;
+                }
+            }
             if (appData.ducts.systemsData) {
+                // Recalculate smoke with restored velocities
+                recalculateSmokeSection();
                 updateAllStats();
             }
         }
