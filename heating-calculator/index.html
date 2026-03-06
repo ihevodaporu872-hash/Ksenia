@@ -637,7 +637,7 @@
                                     <i class="bi bi-diagram-3 me-2"></i>
                                     <span class="accordion-header-stats">
                                         <span>Разводка систем</span>
-                                        <span class="header-stat" id="routingStats">Систем: 0 | Расход: 0 м³/ч</span>
+                                        <span class="header-stat" id="routingStats">Σ S: 0 м²</span>
                                     </span>
                                 </button>
                             </h2>
@@ -651,7 +651,7 @@
                                                 <button class="accordion-button py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#routingGeneral">
                                                     <i class="bi bi-wind me-1" style="color:#0d6efd;"></i>
                                                     <span style="color:#0d6efd; font-weight:600;">Общеобменная система</span>
-                                                    <span class="badge bg-primary ms-2" id="routingGenBadge">0</span>
+                                                    <span class="area-total ms-auto" id="routingGenTotal">Σ S: 0 м²</span>
                                                 </button>
                                             </h2>
                                             <div id="routingGeneral" class="accordion-collapse collapse show" data-bs-parent="#routingSubAccordion">
@@ -659,47 +659,73 @@
                                                     <!-- Приточные -->
                                                     <h6 class="mt-2 mb-1 ms-1" style="color:#28a745; font-size:0.85rem;">
                                                         <i class="bi bi-box-arrow-in-down me-1"></i>Приточные системы
-                                                        <span class="badge bg-success ms-1" id="routingGenSupBadge">0</span>
+                                                        <span class="ms-2" style="font-size:0.75rem; color:#6c757d;" id="routingSupTotal">Σ S: 0 м²</span>
                                                     </h6>
                                                     <div class="table-responsive">
-                                                        <table class="table table-sm table-hover systems-table mb-1" id="routingGenSupTable">
-                                                            <thead><tr>
-                                                                <th style="width:20%;">Система</th>
-                                                                <th style="width:20%;">Расход L, м³/ч</th>
-                                                                <th style="width:15%;">Скорость v, м/с</th>
-                                                                <th style="width:15%;">Длина, м</th>
-                                                                <th style="width:15%;">Сечение</th>
-                                                                <th style="width:10%;">S, м²</th>
-                                                                <th style="width:5%;"></th>
+                                                        <table class="table table-sm table-bordered systems-table mb-1" id="routingGenSupTable">
+                                                            <thead class="table-light"><tr>
+                                                                <th style="width:35%;">Участок</th>
+                                                                <th style="width:20%;">Длина, м</th>
+                                                                <th style="width:20%;">Сечение (коэфф.)</th>
+                                                                <th style="width:25%;">Площадь, м²</th>
                                                             </tr></thead>
-                                                            <tbody></tbody>
+                                                            <tbody>
+                                                                <tr data-route="corridor">
+                                                                    <td>Разводка по коридору<br><small class="text-muted">квартир × 3</small></td>
+                                                                    <td class="text-center fw-bold routing-length">0</td>
+                                                                    <td class="text-center"><input type="number" class="form-control form-control-sm text-center routing-section-input" value="1" min="0" step="0.01" style="width:80px;margin:0 auto;" oninput="recalcRouting()"></td>
+                                                                    <td class="text-center fw-bold routing-area">0</td>
+                                                                </tr>
+                                                                <tr data-route="toApt">
+                                                                    <td>Разводка до квартиры<br><small class="text-muted">квартир × 4</small></td>
+                                                                    <td class="text-center fw-bold routing-length">0</td>
+                                                                    <td class="text-center"><input type="number" class="form-control form-control-sm text-center routing-section-input" value="0.314" min="0" step="0.01" style="width:80px;margin:0 auto;" oninput="recalcRouting()"></td>
+                                                                    <td class="text-center fw-bold routing-area">0</td>
+                                                                </tr>
+                                                                <tr data-route="insideApt">
+                                                                    <td>Разводка внутри квартиры<br><small class="text-muted">комнат × 3</small></td>
+                                                                    <td class="text-center fw-bold routing-length">0</td>
+                                                                    <td class="text-center"><input type="number" class="form-control form-control-sm text-center routing-section-input" value="0.314" min="0" step="0.01" style="width:80px;margin:0 auto;" oninput="recalcRouting()"></td>
+                                                                    <td class="text-center fw-bold routing-area">0</td>
+                                                                </tr>
+                                                            </tbody>
                                                         </table>
                                                     </div>
-                                                    <button type="button" class="btn btn-outline-success btn-sm mb-2" onclick="addRoutingRow('genSup')">
-                                                        <i class="bi bi-plus-circle me-1"></i>Добавить систему
-                                                    </button>
                                                     <!-- Вытяжные -->
                                                     <h6 class="mt-2 mb-1 ms-1" style="color:#0d6efd; font-size:0.85rem;">
                                                         <i class="bi bi-box-arrow-up me-1"></i>Вытяжные системы
-                                                        <span class="badge bg-primary ms-1" id="routingGenExhBadge">0</span>
+                                                        <span class="ms-2" style="font-size:0.75rem; color:#6c757d;" id="routingExhTotal">Σ S: 0 м²</span>
                                                     </h6>
                                                     <div class="table-responsive">
-                                                        <table class="table table-sm table-hover systems-table mb-1" id="routingGenExhTable">
-                                                            <thead><tr>
-                                                                <th style="width:20%;">Система</th>
-                                                                <th style="width:20%;">Расход L, м³/ч</th>
-                                                                <th style="width:15%;">Скорость v, м/с</th>
-                                                                <th style="width:15%;">Длина, м</th>
-                                                                <th style="width:15%;">Сечение</th>
-                                                                <th style="width:10%;">S, м²</th>
-                                                                <th style="width:5%;"></th>
+                                                        <table class="table table-sm table-bordered systems-table mb-1" id="routingGenExhTable">
+                                                            <thead class="table-light"><tr>
+                                                                <th style="width:35%;">Участок</th>
+                                                                <th style="width:20%;">Длина, м</th>
+                                                                <th style="width:20%;">Сечение (коэфф.)</th>
+                                                                <th style="width:25%;">Площадь, м²</th>
                                                             </tr></thead>
-                                                            <tbody></tbody>
+                                                            <tbody>
+                                                                <tr data-route="corridor">
+                                                                    <td>Разводка по коридору<br><small class="text-muted">квартир × 3</small></td>
+                                                                    <td class="text-center fw-bold routing-length">0</td>
+                                                                    <td class="text-center"><input type="number" class="form-control form-control-sm text-center routing-section-input" value="1" min="0" step="0.01" style="width:80px;margin:0 auto;" oninput="recalcRouting()"></td>
+                                                                    <td class="text-center fw-bold routing-area">0</td>
+                                                                </tr>
+                                                                <tr data-route="toApt">
+                                                                    <td>Разводка до квартиры<br><small class="text-muted">квартир × 4</small></td>
+                                                                    <td class="text-center fw-bold routing-length">0</td>
+                                                                    <td class="text-center"><input type="number" class="form-control form-control-sm text-center routing-section-input" value="0.314" min="0" step="0.01" style="width:80px;margin:0 auto;" oninput="recalcRouting()"></td>
+                                                                    <td class="text-center fw-bold routing-area">0</td>
+                                                                </tr>
+                                                                <tr data-route="insideApt">
+                                                                    <td>Разводка внутри квартиры<br><small class="text-muted">комнат × 3</small></td>
+                                                                    <td class="text-center fw-bold routing-length">0</td>
+                                                                    <td class="text-center"><input type="number" class="form-control form-control-sm text-center routing-section-input" value="0.314" min="0" step="0.01" style="width:80px;margin:0 auto;" oninput="recalcRouting()"></td>
+                                                                    <td class="text-center fw-bold routing-area">0</td>
+                                                                </tr>
+                                                            </tbody>
                                                         </table>
                                                     </div>
-                                                    <button type="button" class="btn btn-outline-primary btn-sm mb-2" onclick="addRoutingRow('genExh')">
-                                                        <i class="bi bi-plus-circle me-1"></i>Добавить систему
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -710,28 +736,41 @@
                                                 <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#routingSmoke">
                                                     <i class="bi bi-shield-exclamation me-1" style="color:#dc3545;"></i>
                                                     <span style="color:#dc3545; font-weight:600;">Противодымная система</span>
-                                                    <span class="badge bg-danger ms-2" id="routingSmkBadge">0</span>
+                                                    <span class="area-total ms-auto" id="routingSmkTotal">Σ S: 0 м²</span>
                                                 </button>
                                             </h2>
                                             <div id="routingSmoke" class="accordion-collapse collapse" data-bs-parent="#routingSubAccordion">
                                                 <div class="accordion-body p-1">
                                                     <div class="table-responsive">
-                                                        <table class="table table-sm table-hover systems-table mb-1" id="routingSmkTable">
-                                                            <thead><tr>
-                                                                <th style="width:20%;">Система</th>
-                                                                <th style="width:20%;">Расход L, м³/ч</th>
-                                                                <th style="width:15%;">Скорость v, м/с</th>
-                                                                <th style="width:15%;">Длина, м</th>
-                                                                <th style="width:15%;">Сечение</th>
-                                                                <th style="width:10%;">S, м²</th>
-                                                                <th style="width:5%;"></th>
+                                                        <table class="table table-sm table-bordered systems-table mb-1" id="routingSmkTable">
+                                                            <thead class="table-light"><tr>
+                                                                <th style="width:35%;">Участок</th>
+                                                                <th style="width:20%;">Длина, м</th>
+                                                                <th style="width:20%;">Сечение (коэфф.)</th>
+                                                                <th style="width:25%;">Площадь, м²</th>
                                                             </tr></thead>
-                                                            <tbody></tbody>
+                                                            <tbody>
+                                                                <tr data-route="corridor">
+                                                                    <td>Разводка по коридору<br><small class="text-muted">квартир × 3</small></td>
+                                                                    <td class="text-center fw-bold routing-length">0</td>
+                                                                    <td class="text-center"><input type="number" class="form-control form-control-sm text-center routing-section-input" value="1" min="0" step="0.01" style="width:80px;margin:0 auto;" oninput="recalcRouting()"></td>
+                                                                    <td class="text-center fw-bold routing-area">0</td>
+                                                                </tr>
+                                                                <tr data-route="toApt">
+                                                                    <td>Разводка до квартиры<br><small class="text-muted">квартир × 4</small></td>
+                                                                    <td class="text-center fw-bold routing-length">0</td>
+                                                                    <td class="text-center"><input type="number" class="form-control form-control-sm text-center routing-section-input" value="0.314" min="0" step="0.01" style="width:80px;margin:0 auto;" oninput="recalcRouting()"></td>
+                                                                    <td class="text-center fw-bold routing-area">0</td>
+                                                                </tr>
+                                                                <tr data-route="insideApt">
+                                                                    <td>Разводка внутри квартиры<br><small class="text-muted">комнат × 3</small></td>
+                                                                    <td class="text-center fw-bold routing-length">0</td>
+                                                                    <td class="text-center"><input type="number" class="form-control form-control-sm text-center routing-section-input" value="0.314" min="0" step="0.01" style="width:80px;margin:0 auto;" oninput="recalcRouting()"></td>
+                                                                    <td class="text-center fw-bold routing-area">0</td>
+                                                                </tr>
+                                                            </tbody>
                                                         </table>
                                                     </div>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm mb-2" onclick="addRoutingRow('smk')">
-                                                        <i class="bi bi-plus-circle me-1"></i>Добавить систему
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1673,11 +1712,13 @@
         document.getElementById('totalApartments').addEventListener('input', () => {
             if (document.getElementById('fittingsAccordion')) renderFittingsTab();
             if (document.getElementById('grGenCirc250')) syncGenGrillesFromFittings();
+            recalcRouting();
         });
         ['apt1room', 'apt2room', 'apt3room', 'apt4room'].forEach(id => {
             document.getElementById(id).addEventListener('input', () => {
                 if (document.getElementById('fittingsAccordion')) renderFittingsTab();
                 if (document.getElementById('grGenCirc250')) syncGenGrillesFromFittings();
+                recalcRouting();
             });
         });
 
@@ -2385,115 +2426,86 @@
         }
 
         // === РАЗВОДКА СИСТЕМ ===
-        function calcRoutingDuct(flow, velocity) {
-            const v = parseFloat(velocity) || 5;
-            const L = parseFloat(flow) || 0;
-            if (L <= 0) return { sectionDisplay: '—', perimeter: 0, sectionArea: 0 };
-            if (L <= 1000) {
-                const dCalc = Math.sqrt((4 * L) / (3600 * Math.PI * v)) * 1000;
-                const diameter = getStandardDiameter(Math.PI * Math.pow(dCalc / 1000, 2) / 4);
-                const perimeter = Math.PI * diameter / 1000;
-                return { sectionDisplay: `Ø${diameter}`, perimeter, sectionArea: Math.PI * Math.pow(diameter / 1000, 2) / 4 };
-            } else {
-                const reqArea = L / (3600 * v) * 1000000;
-                const { a, b } = getOptimalRectDuct(reqArea);
-                const perimeter = 2 * (a + b) / 1000;
-                return { sectionDisplay: `${a}×${b}`, perimeter, sectionArea: (a * b) / 1000000 };
-            }
-        }
+        function recalcRouting() {
+            const aptCount = parseInt(document.getElementById('totalApartments').value) || 0;
+            const roomCount = getAptMultiplier();
 
-        function addRoutingRow(group, data) {
-            const tableIds = { genSup: 'routingGenSupTable', genExh: 'routingGenExhTable', smk: 'routingSmkTable' };
-            const tbody = document.getElementById(tableIds[group])?.querySelector('tbody');
-            if (!tbody) return;
-            const sys = data?.system || '';
-            const flow = data?.flow || '';
-            const vel = data?.velocity || 8;
-            const len = data?.length || '';
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><input type="text" class="form-control form-control-sm" value="${sys}" placeholder="П-1" onchange="updateRoutingRow(this)" style="min-width:60px;"></td>
-                <td><input type="number" class="form-control form-control-sm text-center" value="${flow}" min="0" step="1" onchange="updateRoutingRow(this)" style="width:90px;margin:0 auto;"></td>
-                <td><input type="number" class="form-control form-control-sm text-center" value="${vel}" min="0.5" max="15" step="0.5" onchange="updateRoutingRow(this)" style="width:75px;margin:0 auto;"></td>
-                <td><input type="number" class="form-control form-control-sm text-center" value="${len}" min="0" step="0.1" onchange="updateRoutingRow(this)" style="width:75px;margin:0 auto;"></td>
-                <td class="text-center fw-bold routing-section" style="font-size:0.82em;">—</td>
-                <td class="text-center fw-bold routing-surface">0</td>
-                <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm py-0 px-1" onclick="removeRoutingRow(this)" title="Удалить"><i class="bi bi-x"></i></button></td>`;
-            tbody.appendChild(tr);
-            if (flow) updateRoutingRow(tr.querySelector('input'));
-            else saveRoutingData();
-        }
-        window.addRoutingRow = addRoutingRow;
+            const lengthMap = {
+                corridor: aptCount * 3,
+                toApt: aptCount * 4,
+                insideApt: roomCount * 3
+            };
 
-        function updateRoutingRow(input) {
-            const tr = input.closest('tr');
-            const inputs = tr.querySelectorAll('input');
-            const flow = parseFloat(inputs[1].value) || 0;
-            const vel = parseFloat(inputs[2].value) || 5;
-            const len = parseFloat(inputs[3].value) || 0;
-            const duct = calcRoutingDuct(flow, vel);
-            tr.querySelector('.routing-section').textContent = duct.sectionDisplay;
-            const surface = duct.perimeter * len;
-            tr.querySelector('.routing-surface').textContent = surface > 0 ? surface.toFixed(2) : '0';
-            updateRoutingStats();
-            saveRoutingData();
-        }
-        window.updateRoutingRow = updateRoutingRow;
+            let genSupTotal = 0, genExhTotal = 0, smkTotal = 0;
 
-        function removeRoutingRow(btn) {
-            btn.closest('tr').remove();
-            updateRoutingStats();
-            saveRoutingData();
-        }
-        window.removeRoutingRow = removeRoutingRow;
-
-        function getRoutingRows(tableId) {
-            const rows = [];
-            document.getElementById(tableId)?.querySelectorAll('tbody tr').forEach(tr => {
-                const inputs = tr.querySelectorAll('input');
-                const flow = parseFloat(inputs[1].value) || 0;
-                const vel = parseFloat(inputs[2].value) || 5;
-                const len = parseFloat(inputs[3].value) || 0;
-                const duct = calcRoutingDuct(flow, vel);
-                rows.push({ system: inputs[0].value, flow, velocity: vel, length: len, surface: duct.perimeter * len });
+            ['routingGenSupTable', 'routingGenExhTable', 'routingSmkTable'].forEach(tableId => {
+                let tableTotal = 0;
+                const table = document.getElementById(tableId);
+                if (!table) return;
+                table.querySelectorAll('tbody tr').forEach(tr => {
+                    const route = tr.dataset.route;
+                    const len = lengthMap[route] || 0;
+                    const sectionCoeff = parseFloat(tr.querySelector('.routing-section-input').value) || 0;
+                    const area = len * sectionCoeff;
+                    tr.querySelector('.routing-length').textContent = len.toFixed(1);
+                    tr.querySelector('.routing-area').textContent = area.toFixed(2);
+                    tableTotal += area;
+                });
+                if (tableId === 'routingGenSupTable') genSupTotal = tableTotal;
+                else if (tableId === 'routingGenExhTable') genExhTotal = tableTotal;
+                else smkTotal = tableTotal;
             });
-            return rows;
+
+            const genTotal = genSupTotal + genExhTotal;
+            const allTotal = genTotal + smkTotal;
+
+            const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+            setText('routingSupTotal', `Σ S: ${genSupTotal.toFixed(2)} м²`);
+            setText('routingExhTotal', `Σ S: ${genExhTotal.toFixed(2)} м²`);
+            setText('routingGenTotal', `Σ S: ${genTotal.toFixed(2)} м²`);
+            setText('routingSmkTotal', `Σ S: ${smkTotal.toFixed(2)} м²`);
+            setText('routingStats', `Σ S: ${allTotal.toFixed(2)} м²`);
+
+            // Store for stats integration
+            appData.ducts.routingSurface = genTotal;
+            appData.ducts.routingSmkSurface = smkTotal;
+
+            saveRoutingData();
         }
-
-        function updateRoutingStats() {
-            const genSup = getRoutingRows('routingGenSupTable');
-            const genExh = getRoutingRows('routingGenExhTable');
-            const smk = getRoutingRows('routingSmkTable');
-            const genAll = [...genSup, ...genExh];
-            const allRows = [...genAll, ...smk];
-
-            const badge = (id, count) => { const el = document.getElementById(id); if (el) el.textContent = count; };
-            badge('routingGenSupBadge', genSup.length);
-            badge('routingGenExhBadge', genExh.length);
-            badge('routingGenBadge', genAll.length);
-            badge('routingSmkBadge', smk.length);
-
-            const totalCount = allRows.length;
-            const totalFlow = allRows.reduce((s, r) => s + r.flow, 0);
-            const el = document.getElementById('routingStats');
-            if (el) el.textContent = `Систем: ${totalCount} | Расход: ${totalFlow.toLocaleString()} м³/ч`;
-        }
+        window.recalcRouting = recalcRouting;
 
         function saveRoutingData() {
             if (!appData.ducts.routing) appData.ducts.routing = {};
-            appData.ducts.routing.genSup = getRoutingRows('routingGenSupTable').map(r => ({ system: r.system, flow: r.flow, velocity: r.velocity, length: r.length }));
-            appData.ducts.routing.genExh = getRoutingRows('routingGenExhTable').map(r => ({ system: r.system, flow: r.flow, velocity: r.velocity, length: r.length }));
-            appData.ducts.routing.smk = getRoutingRows('routingSmkTable').map(r => ({ system: r.system, flow: r.flow, velocity: r.velocity, length: r.length }));
+            ['routingGenSupTable', 'routingGenExhTable', 'routingSmkTable'].forEach(tableId => {
+                const key = tableId === 'routingGenSupTable' ? 'genSup' : tableId === 'routingGenExhTable' ? 'genExh' : 'smk';
+                const sections = [];
+                document.getElementById(tableId)?.querySelectorAll('tbody tr').forEach(tr => {
+                    sections.push({
+                        route: tr.dataset.route,
+                        sectionCoeff: parseFloat(tr.querySelector('.routing-section-input').value) || 0
+                    });
+                });
+                appData.ducts.routing[key] = sections;
+            });
             saveData();
         }
 
         function loadRoutingData() {
             const routing = appData.ducts.routing;
-            if (!routing) return;
-            (routing.genSup || []).forEach(r => addRoutingRow('genSup', r));
-            (routing.genExh || []).forEach(r => addRoutingRow('genExh', r));
-            (routing.smk || []).forEach(r => addRoutingRow('smk', r));
-            updateRoutingStats();
+            if (routing) {
+                // Restore section coefficients from saved data
+                ['routingGenSupTable', 'routingGenExhTable', 'routingSmkTable'].forEach(tableId => {
+                    const key = tableId === 'routingGenSupTable' ? 'genSup' : tableId === 'routingGenExhTable' ? 'genExh' : 'smk';
+                    const saved = routing[key];
+                    if (!saved || !saved.length) return;
+                    document.getElementById(tableId)?.querySelectorAll('tbody tr').forEach((tr, i) => {
+                        if (saved[i] && saved[i].sectionCoeff !== undefined) {
+                            tr.querySelector('.routing-section-input').value = saved[i].sectionCoeff;
+                        }
+                    });
+                });
+            }
+            recalcRouting();
         }
 
         // === ЭКСПОРТ ВОЗДУХОВОДОВ В EXCEL ===
