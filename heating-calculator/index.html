@@ -518,99 +518,119 @@
                     <!-- Аккордеон секций -->
                     <div class="accordion" id="ductsAccordion">
 
-                        <!-- Секция 1: Транзиты (Аренда) -->
+                        <!-- Общеобменная система -->
                         <div class="accordion-item">
                             <h2 class="accordion-header d-flex align-items-center">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#rentTransit">
-                                    <i class="bi bi-building me-2"></i>
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#generalVent">
+                                    <i class="bi bi-wind me-2"></i>
                                     <span class="accordion-header-stats">
-                                        <span>Транзиты (Аренда)</span>
-                                        <span class="header-stat" id="rentStats">Систем: 0 | Расход: 0 м³/ч</span>
+                                        <span>Общеобменная система</span>
+                                        <span class="header-stat" id="generalStats">Систем: 0 | Расход: 0 м³/ч</span>
                                     </span>
                                 </button>
-                                <div class="velocity-inline" onclick="event.stopPropagation()">
-                                    <label>v:</label>
-                                    <input type="number" class="section-velocity" id="velocityRent" value="5" min="1" max="15" step="0.5" data-section="rent">
-                                    <span>м/с</span>
-                                </div>
                             </h2>
-                            <div id="rentTransit" class="accordion-collapse collapse show" data-bs-parent="#ductsAccordion">
+                            <div id="generalVent" class="accordion-collapse collapse show" data-bs-parent="#ductsAccordion">
                                 <div class="accordion-body p-2">
-                                    <div id="rentContent"></div>
+                                    <div class="accordion nested-accordion" id="generalSubAccordion">
+
+                                        <!-- Транзиты (Аренда) -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header d-flex align-items-center">
+                                                <button class="accordion-button py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#rentTransit">
+                                                    <i class="bi bi-building me-2"></i>
+                                                    <span class="accordion-header-stats">
+                                                        <span>Транзиты (Аренда)</span>
+                                                        <span class="header-stat" id="rentStats">Систем: 0 | Расход: 0 м³/ч</span>
+                                                    </span>
+                                                </button>
+                                                <div class="velocity-inline" onclick="event.stopPropagation()">
+                                                    <label>v:</label>
+                                                    <input type="number" class="section-velocity" id="velocityRent" value="5" min="1" max="15" step="0.5" data-section="rent">
+                                                    <span>м/с</span>
+                                                </div>
+                                            </h2>
+                                            <div id="rentTransit" class="accordion-collapse collapse show" data-bs-parent="#generalSubAccordion">
+                                                <div class="accordion-body p-1">
+                                                    <div id="rentContent"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Жилая часть -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header d-flex align-items-center">
+                                                <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#residential">
+                                                    <i class="bi bi-house me-2"></i>
+                                                    <span class="accordion-header-stats">
+                                                        <span>Жилая часть</span>
+                                                        <span class="header-stat" id="residentialStats">Систем: 0 | Расход: 0 м³/ч</span>
+                                                    </span>
+                                                </button>
+                                                <div class="velocity-inline" onclick="event.stopPropagation()">
+                                                    <label>v:</label>
+                                                    <input type="number" class="section-velocity" id="velocityResidential" value="3" min="1" max="15" step="0.5" data-section="residential">
+                                                    <span>м/с</span>
+                                                </div>
+                                            </h2>
+                                            <div id="residential" class="accordion-collapse collapse" data-bs-parent="#generalSubAccordion">
+                                                <div class="accordion-body p-1">
+                                                    <div id="residentialContent"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Подземная часть -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header d-flex align-items-center">
+                                                <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#parkingTransit">
+                                                    <i class="bi bi-car-front me-2"></i>
+                                                    <span class="accordion-header-stats">
+                                                        <span>Подземная часть</span>
+                                                        <span class="header-stat" id="parkingStats">Систем: 0 | Расход: 0 м³/ч</span>
+                                                    </span>
+                                                </button>
+                                                <div class="velocity-inline" onclick="event.stopPropagation()">
+                                                    <label>v:</label>
+                                                    <input type="number" class="section-velocity" id="velocityParking" value="8" min="1" max="15" step="0.5" data-section="parking">
+                                                    <span>м/с</span>
+                                                </div>
+                                            </h2>
+                                            <div id="parkingTransit" class="accordion-collapse collapse" data-bs-parent="#generalSubAccordion">
+                                                <div class="accordion-body p-1">
+                                                    <div id="parkingContent"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Прочие системы с переменным сечением -->
+                                        <div class="accordion-item">
+                                            <h2 class="accordion-header d-flex align-items-center">
+                                                <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#otherSystems">
+                                                    <i class="bi bi-three-dots me-2"></i>
+                                                    <span class="accordion-header-stats">
+                                                        <span>Прочие системы с переменным сечением</span>
+                                                        <span class="header-stat" id="otherStats">Систем: 0 | Расход: 0 м³/ч</span>
+                                                    </span>
+                                                </button>
+                                                <div class="velocity-inline" onclick="event.stopPropagation()">
+                                                    <label>v:</label>
+                                                    <input type="number" class="section-velocity" id="velocityOther" value="3" min="1" max="15" step="0.5" data-section="other">
+                                                    <span>м/с</span>
+                                                </div>
+                                            </h2>
+                                            <div id="otherSystems" class="accordion-collapse collapse" data-bs-parent="#generalSubAccordion">
+                                                <div class="accordion-body p-1">
+                                                    <div id="otherContent"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Секция 2: Жилая часть -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header d-flex align-items-center">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#residential">
-                                    <i class="bi bi-house me-2"></i>
-                                    <span class="accordion-header-stats">
-                                        <span>Жилая часть</span>
-                                        <span class="header-stat" id="residentialStats">Систем: 0 | Расход: 0 м³/ч</span>
-                                    </span>
-                                </button>
-                                <div class="velocity-inline" onclick="event.stopPropagation()">
-                                    <label>v:</label>
-                                    <input type="number" class="section-velocity" id="velocityResidential" value="3" min="1" max="15" step="0.5" data-section="residential">
-                                    <span>м/с</span>
-                                </div>
-                            </h2>
-                            <div id="residential" class="accordion-collapse collapse" data-bs-parent="#ductsAccordion">
-                                <div class="accordion-body p-2">
-                                    <div id="residentialContent"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Секция 3: Подземная часть -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header d-flex align-items-center">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#parkingTransit">
-                                    <i class="bi bi-car-front me-2"></i>
-                                    <span class="accordion-header-stats">
-                                        <span>Подземная часть</span>
-                                        <span class="header-stat" id="parkingStats">Систем: 0 | Расход: 0 м³/ч</span>
-                                    </span>
-                                </button>
-                                <div class="velocity-inline" onclick="event.stopPropagation()">
-                                    <label>v:</label>
-                                    <input type="number" class="section-velocity" id="velocityParking" value="8" min="1" max="15" step="0.5" data-section="parking">
-                                    <span>м/с</span>
-                                </div>
-                            </h2>
-                            <div id="parkingTransit" class="accordion-collapse collapse" data-bs-parent="#ductsAccordion">
-                                <div class="accordion-body p-2">
-                                    <div id="parkingContent"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Секция 4: Прочие системы с переменным сечением -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header d-flex align-items-center">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#otherSystems">
-                                    <i class="bi bi-three-dots me-2"></i>
-                                    <span class="accordion-header-stats">
-                                        <span>Прочие системы с переменным сечением</span>
-                                        <span class="header-stat" id="otherStats">Систем: 0 | Расход: 0 м³/ч</span>
-                                    </span>
-                                </button>
-                                <div class="velocity-inline" onclick="event.stopPropagation()">
-                                    <label>v:</label>
-                                    <input type="number" class="section-velocity" id="velocityOther" value="3" min="1" max="15" step="0.5" data-section="other">
-                                    <span>м/с</span>
-                                </div>
-                            </h2>
-                            <div id="otherSystems" class="accordion-collapse collapse" data-bs-parent="#ductsAccordion">
-                                <div class="accordion-body p-2">
-                                    <div id="otherContent"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Секция 5: Противодымная вентиляция -->
+                        <!-- Противодымная вентиляция -->
                         <div class="accordion-item">
                             <h2 class="accordion-header d-flex align-items-center">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#smokeVent">
@@ -2055,6 +2075,7 @@
             const genSystems = genSections.flatMap(s => systemsData[s]);
             const genCount = genSystems.length;
             const genFlow = genSystems.reduce((sum, s) => sum + s.flow, 0);
+            document.getElementById('generalStats').textContent = `Систем: ${genCount} | Расход: ${genFlow.toLocaleString()} м³/ч`;
             const genPerimeter = genSystems.reduce((sum, s) => sum + (s.perimeter || 0), 0);
             const genRouteLen = genSystems.reduce((sum, s) => sum + (s.routeLength || getRouteLength(s.startFloor || 1)), 0);
             const rentSurface = systemsData.rent.reduce((sum, sys) => sum + getSystemSurface(sys, 'rent'), 0);
